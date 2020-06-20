@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS users (
 
     | Name | MySQL Option | Description |
     | -- | -- | -- |
-    | unique() |`UNIQUE` | |
+    | unique() |`UNIQUE` | Only if the string length is clearly or implicitely defined (by using string types like email, creditCard, etc.. from Joi) |
     | primaryKey() |`PRIMARY KEY` | |
     | required() |`NOT NULL` |  |
     | default(value: string) |`DEFAULT` |  |
