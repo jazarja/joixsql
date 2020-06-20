@@ -1,0 +1,30 @@
+{
+  "name": "joi-mysql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "mocha -r ts-node/register tests/units/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fantasim/joi-mysql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Fantasim/joi-mysql/issues"
+  },
+  "homepage": "https://github.com/Fantasim/joi-mysql#readme",
+  "dependencies": {
+    "@hapi/joi": "^17.1.1",
+    "@types/lodash": "^4.14.155",
+    "lodash": "^4.17.15"
+  },
+  "devDependencies": {
+    "@types/hapi__joi": "^17.1.2"
+  }
+}
