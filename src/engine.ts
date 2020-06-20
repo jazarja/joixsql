@@ -4,7 +4,8 @@ import _ from 'lodash'
 import { 
     LIST_SUPPORTED_TYPES,
     DEFAULT_SQL_TYPES,
-    MYSQL_NUMBER_TYPES
+    MYSQL_NUMBER_TYPES,
+    MYSQL_STRING_TYPES
 } from './mysql-types'
 
 const DEFAULT_OPTIONS = {
@@ -63,7 +64,7 @@ export default class Engine {
         defaultValue = typeof defaultValue === 'string' ? `'${defaultValue}'` : defaultValue
 
         if (type === 'date'){
-            ret += (defaultValue === 'now' ? (this.IsUnixDateFormat(flags) ? 'CURRENT_TIMESTAMP' : 'now()') : defaultValue)
+            ret += (defaultValue === `'now'` ? (this.IsUnixDateFormat(flags) ? 'CURRENT_TIMESTAMP' : 'now()') : defaultValue)
         } else {
             ret += defaultValue            
         }
@@ -121,20 +122,10 @@ export default class Engine {
 
         this.options().onParseError(element)
 
-        //foreign key
-        let foreignKey = this.GetForeignKey(flags)
-        // if (foreignKey && ENABLE_ACEY){
-        //     const [table, key] = foreignKey
-        //     if (!table || !manager.models().exist(table)){
-        //         throw new Error("No connected Collection exists with this key.")
-        //     }
-        // }
-
         //only unix allowed on date format
         if (flags && flags.format === 'javascript'){
             throw new Error("only unix format is supported")
         }
-
     }
 
     private _parseDate = (element: any) => {
@@ -164,12 +155,12 @@ export default class Engine {
             const isInsensitive = this.IsInsensitive(flags)
             if (length <= 255)
                 type = `VARCHAR(${length})${isInsensitive ? '' : ' BINARY'}`
-            else if (length <= 65535){
-                type = isInsensitive ? 'TEXT' : 'BLOB'
-            } else if (length <= 16777215){
-                type = isInsensitive ? 'MEDIUMTEXT' : 'MEDIUMBLOB'
-            } else if (length <= 16777215){
-                type = isInsensitive ? 'LONGTEXT' : 'LONGBLOB'
+            else {
+                const e = _.find(MYSQL_STRING_TYPES, (o) => length < o.max)
+                if (!isInsensitive)
+                    type = e.type.replace('TEXT', 'BLOB')
+                else
+                    type = e.type
             }
         //if the max length is not enabled
         } else {

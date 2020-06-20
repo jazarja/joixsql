@@ -18,6 +18,29 @@ export const DEFAULT_SQL_TYPES: any = [
     }
 ]
 
+export const MYSQL_STRING_TYPES: any = [
+    {
+        type: 'TINYTEXT',
+        min: 1,
+        max: 255
+    },
+    {
+        type: 'TEXT',
+        min: 1,
+        max: 65535
+    },
+    {
+        type: 'MEDIUMTEXT',
+        min: 1,
+        max: 16777215
+    },
+    {
+        type: 'LONGTEXT',
+        min: 1,
+        max: 4294967295
+    }
+]
+
 export const MYSQL_NUMBER_TYPES: any = [
     {
         type: 'TINYINT',
