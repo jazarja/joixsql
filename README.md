@@ -1,11 +1,15 @@
 # Joi MySQL ⛓️
 > Create your schemas with Joi, generate your tables with Joi-MySQL.
 
+<br />
+
 #### ⚠️ The project only support the strict minimum features about data types and sql options. If you want to improve the library please feel free to pull request!
 
 ### Features
 - Joi types supported : `Date`, `String`, `Number`, `Boolean`
 - MySQL Create table options supported : `Primary Key`, `Foreign Keys`, `AUTO INCREMENT`, `DEFAULT VALUE`, `ON CASCADE`, `UNIQUE`, `NOT NULL`
+
+<br />
 
 ## Usage
 
@@ -13,7 +17,7 @@
 yarn add joi-mysql
 ```
 
-Example:
+### Example:
 ```js
 
 import JoiMySQL, { Engine } from 'joi-mysql'
