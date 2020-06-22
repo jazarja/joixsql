@@ -72,8 +72,10 @@ CREATE TABLE IF NOT EXISTS users (
 
     | Name | MySQL Option | Description |
     | -- | -- | -- |
-    | unique() |`UNIQUE` | |
+    | unique() |`UNIQUE` | Only if the string length is clearly or implicitely defined (by using string types like email, creditCard, etc.. from Joi) |
     | primaryKey() |`PRIMARY KEY` | |
+    | required() |`NOT NULL` |  |
+    | default(value: string) |`DEFAULT` |  |
     | foreignKey(reference_table: string, reference_row: string) |`FOREIGN KEY` | |
     | deleteCascade(reference_table: string, reference_row: string) |`ON DELETE CASCADE` | works only if foreignKey is set |
     | updateCascade(reference_table: string, reference_row: string) |`ON UPDATE CASCADE` | works only if foreignKey is set |
@@ -95,6 +97,8 @@ CREATE TABLE IF NOT EXISTS users (
     | double() |`DOUBLE` | Specify if the number is a double |
     | unique() |`UNIQUE` |  |
     | primaryKey() |`PRIMARY KEY` |  |
+    | required() |`NOT NULL` |  |
+    | default(value: number) |`DEFAULT` |  |
     | foreignKey(reference_table: string, reference_row: string) |`FOREIGN KEY` |  |
     | deleteCascade(reference_table: string, reference_row: string) |`ON DELETE CASCADE` | works only if foreignKey is set |
     | updateCascade(reference_table: string, reference_row: string) |`ON UPDATE CASCADE` | works only if foreignKey is set |
@@ -111,12 +115,23 @@ CREATE TABLE IF NOT EXISTS users (
     | -- | -- | -- |
     | unique() |`UNIQUE` | |
     | primaryKey() |`PRIMARY KEY` | |
+    | required() |`NOT NULL` |  |
+    | default(value: 'now' / number / string) |`DEFAULT` |  |
     | foreignKey(reference_table: string, reference_row: string) |`FOREIGN KEY` | |
     | deleteCascade(reference_table: string, reference_row: string) |`ON DELETE CASCADE` | works only if foreignKey is set |
     | updateCascade(reference_table: string, reference_row: string) |`ON UPDATE CASCADE` | works only if foreignKey is set |
 
 #### More:
 1. `timestamp('javascript')` is not supported (mysql doesn't store Milliseconds), but you can use timestamp('unix').
+
+<br />
+
+- ### Bool (default type: `BOOLEAN`):
+
+    | Name | MySQL Option | Description |
+    | -- | -- | -- |
+    | required() |`NOT NULL` |  |
+    | default(value: boolean) |`DEFAULT` |  |
 
 <br />
 
