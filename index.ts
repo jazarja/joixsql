@@ -7,6 +7,6 @@ export default {
 }
 
 export {
-    Engine,
-    JoiMySQL
+    JoiMySQL,
+    Engine
 }

@@ -2,40 +2,35 @@ export const LIST_SUPPORTED_TYPES: any = ['string', 'number', 'boolean', 'date']
 export const DEFAULT_SQL_TYPES: any = [
     {
         key: 'string',
-        type: 'TEXT'
+        type: 'text'
     },
     {
         key: 'number',
-        type: 'INT'
+        type: 'int'
     },
     {
         key: 'boolean',
-        type: 'BOOLEAN'
+        type: 'boolean'
     },
     {
         key: 'date',
-        type: 'TIMESTAMP'
+        type: 'timestamp'
     }
 ]
 
 export const MYSQL_STRING_TYPES: any = [
     {
-        type: 'TINYTEXT',
-        min: 1,
-        max: 255
-    },
-    {
-        type: 'TEXT',
+        type: 'varchar',
         min: 1,
         max: 65535
     },
     {
-        type: 'MEDIUMTEXT',
+        type: 'mediumtext',
         min: 1,
         max: 16777215
     },
     {
-        type: 'LONGTEXT',
+        type: 'longtext',
         min: 1,
         max: 4294967295
     }
@@ -43,33 +38,28 @@ export const MYSQL_STRING_TYPES: any = [
 
 export const MYSQL_NUMBER_TYPES: any = [
     {
-        type: 'TINYINT',
+        type: 'tinyint',
         min: -128,
         max: 127
     },
     {
-        type: 'SMALLINT',
+        type: 'smallint',
         min: -32768,
         max: 32767
     },
     {
-        type: 'MEDIUMINT',
+        type: 'mediumint',
         min: -8388608,
         max: 8388607
     },
     {
-        type: 'INT',
+        type: 'int',
         min: -2147483648,
         max: 2147483647
     },
     {
-        type: 'BIGINT',
+        type: 'bigint',
         min: -9223372036854775808,
         max: 9223372036854775807
     },
-    {
-        type: 'BIGINT',
-        min: -9223372036854775808,
-        max: 9223372036854775807
-    }
 ]
