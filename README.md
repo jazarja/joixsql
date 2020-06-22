@@ -1,8 +1,6 @@
 # Joi To SQL ⛓️
 > Create your schemas with Joi, generate your tables with Joi To SQL.
 
-<br />
-
 #### ⚠️ The project only support the strict minimum features about data types and sql options (ON MYSQL). If you want to improve the library please feel free to pull request!
 The library architecture and its implemetation have been built in such a way that is easy to iterate it and adding more features support or more databases support.
 
