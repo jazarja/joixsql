@@ -1,5 +1,5 @@
 {
-  "name": "joi-sql",
+  "name": "joi-to-sql",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -13,12 +13,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Fantasim/joi-sql.git"
+    "url": "git+https://github.com/Fantasim/joi-to-sql.git"
   },
   "bugs": {
-    "url": "https://github.com/Fantasim/joi-sql/issues"
+    "url": "https://github.com/Fantasim/joi-to-sql/issues"
   },
-  "homepage": "https://github.com/Fantasim/joi-sql#readme",
+  "homepage": "https://github.com/Fantasim/joi-to-sql#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "knex": "^0.21.1",

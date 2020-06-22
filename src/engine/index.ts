@@ -48,7 +48,7 @@ export default class Engine {
         }
 
         if (e.type() === 'string'){
-            if (e.is().defaultValue() && !e.is().maxSizeSet()){
+            if (!e.is().enum() && e.is().defaultValue() && !e.is().maxSizeSet()){
                 throw new Error("A TEXT can't have a default value, you need to set a column size")
             }
         }
