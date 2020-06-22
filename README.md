@@ -3,11 +3,14 @@
 
 <br />
 
-#### ⚠️ The project only support the strict minimum features about data types and sql options. If you want to improve the library please feel free to pull request!
+#### ⚠️ The project only support the strict minimum features about data types and sql options (ON MYSQL). If you want to improve the library please feel free to pull request!
+The library architecture and its implemetation have been built in such a way that is easy to iterate it and adding more features support or more databases support.
+
+The SQL builder is made with [Knex](https://knexjs.org/).
 
 ### Features
 - Joi types supported : `Date`, `String`, `Number`, `Boolean`
-- MySQL Create table options supported : `Primary Key`, `Foreign Keys`, `AUTO INCREMENT`, `DEFAULT VALUE`, `ON CASCADE`, `UNIQUE`, `NOT NULL`
+- MySQL Create table options supported : `Primary Key`, `Foreign Keys`, `AUTO INCREMENT`, `DEFAULT VALUE`, `ON DELETE CASCADE`, `ON UPDATE CASCADE`, `UNIQUE`, `NOT NULL`
 
 <br />
 
@@ -97,8 +100,9 @@ CREATE TABLE IF NOT EXISTS users (
     | double() |`DOUBLE` | Specify if the number is a double |
     | unique() |`UNIQUE` |  |
     | primaryKey() |`PRIMARY KEY` |  |
+    | autoIncrement() |`UNSIGNED INT PRIMARY KEY AUTO INCREMENTS` |  |
     | required() |`NOT NULL` |  |
-    | default(value: number) |`DEFAULT` |  |
+    | default(value: number) |`DEFAULT ${value}` |  |
     | foreignKey(reference_table: string, reference_row: string) |`FOREIGN KEY` |  |
     | deleteCascade(reference_table: string, reference_row: string) |`ON DELETE CASCADE` | works only if foreignKey is set |
     | updateCascade(reference_table: string, reference_row: string) |`ON UPDATE CASCADE` | works only if foreignKey is set |
@@ -122,7 +126,7 @@ CREATE TABLE IF NOT EXISTS users (
     | updateCascade(reference_table: string, reference_row: string) |`ON UPDATE CASCADE` | works only if foreignKey is set |
 
 #### More:
-1. `timestamp('javascript')` is not supported (mysql doesn't store Milliseconds), but you can use timestamp('unix').
+1. `timestamp('javascript')` is not supported (mysql doesn't store Milliseconds natively), but you can use timestamp('unix').
 
 <br />
 
