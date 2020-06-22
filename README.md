@@ -49,22 +49,10 @@ console.log(engine.generateTable())
 
 Output: 
 ```
-CREATE TABLE IF NOT EXISTS users (
-     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-     username VARCHAR(30) NOT NULL UNIQUE,
-     team ENUM('lord','emporor','king','prince','noob') DEFAULT 'noob' NOT NULL,
-     created_at DATETIME DEFAULT now(),
-     coins FLOAT DEFAULT 0,
-     coins_pending FLOAT DEFAULT 0,
-     email_confirmed boolean DEFAULT false,
-     email VARCHAR(255) BINARY UNIQUE,
-     device INT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
-     access_token VARCHAR(70),
-     birth_year SMALLINT UNSIGNED,
-     card VARCHAR(32),
-     password VARCHAR(30) BINARY,
-     repeat_password VARCHAR(30) BINARY,
-)
+create table `users` (`id` int unsigned not null auto_increment primary key, `username` varchar(30) not null, `team` enum('lord', 'emporor', 'king', 'prince', 'noob') not null default 'noob', `created_at` datetime default now(), `coins` float(2, 2) default '0', `coins_pending` float(8, 2) default '0', `email_confirmed` boolean default '0', `email` varchar(255), `device` int not null, `access_token` varchar(70), `birth_year` smallint unsigned, `card` varchar(32), `password` varchar(30), `repeat_password` varchar(30));
+alter table `users` add unique `user_username_unique`(`username`);
+alter table `users` add unique `user_email_unique`(`email`);
+alter table `users` add constraint `user_device_foreign` foreign key (`device`) references `devices` (`id`) on delete CASCADE
 ```
 
 <br />
