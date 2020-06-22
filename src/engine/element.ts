@@ -106,9 +106,9 @@ export default class Element {
         minimum = this.get().min() || minimum
 
         if (minimum == undefined)
-            minimum = this.is().strictlyPositive() ? 0 : -2147483648
+            minimum = this.is().strictlyPositive() ? 0 : _.find(MYSQL_NUMBER_TYPES, {type: 'int'}).min
         if (maximum == undefined)
-            maximum = 2147483647
+            maximum = _.find(MYSQL_NUMBER_TYPES, {type: 'int'}).max
 
         const isUnsigned = minimum >= 0 
         const isMinBiggest = (Math.max(Math.abs(minimum), Math.abs(maximum)) * -1 === minimum)

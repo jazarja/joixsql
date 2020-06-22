@@ -3,8 +3,10 @@ import Is from './is'
 import _ from 'lodash'
 
 export default class Get {
+
     private _is: Is
     private _element: Element
+    
     constructor(element: Element){
         this._element = element
         this._is = new Is(element)

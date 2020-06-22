@@ -1,53 +1,36 @@
 import { Schema } from '@hapi/joi'
 import _ from 'lodash'
-import Element from './element'
 import knex, { SchemaBuilder } from 'knex'
 
+import Element from './element'
+import Options from './options'
+
 import { LIST_SUPPORTED_TYPES } from '../mysql-types'
-
-
-const MYSQL_CONFIG = {
-    host: '',
-    user: 'root',
-    password: '',
-    database: 'acey'
-}
-
-const knexCO = knex({
-    client: 'mysql', 
-    connection: MYSQL_CONFIG
-})
-
-const DEFAULT_OPTIONS = {
-    table: '',
-    onParseError: () => null,
-    knex: knexCO
-}
-
-interface IOptions {
-    table: string
-    onParseError: Function,
-    knex: knex
-}
 
 export default class Engine {
     private _shema: Schema
     private _hasPrimaryKey: boolean = false
-    private _options: IOptions = DEFAULT_OPTIONS
+    private _options: Options;
+    private _connection: knex
 
     constructor(schema: Schema, options: any){
         this._shema = schema
-        this._options = Object.assign({}, this._options, options)
+        this._options = new Options(options)
+
+        this._connection = knex({
+            client: 'mysql',
+            connection: this.options().mysqlConfig()
+        })
     }
 
-    public resetTemporarys = () => {
+    private _resetTemporarys = () => {
         this.resetContainPrimaryKey()
     }
 
-    public getTable = () => this.options().table
+    public mysql = () => this._connection
+    public options = () => this._options
     public schema = () => this._shema
     
-    public options = () => this._options
     public setOptions = (options: any) => this._options = Object.assign({}, this.options(), options)
 
     public containPrimaryKey = () => this._hasPrimaryKey
@@ -78,13 +61,13 @@ export default class Engine {
         }
     }
 
-    public table = (): SchemaBuilder => {
-        this.resetTemporarys()
+    public table = (tableName: string): SchemaBuilder => {
+        this._resetTemporarys()
         const described = this.schema().describe().keys
 
-        return knexCO.schema.createTable(this.getTable(), (table: knex.TableBuilder) => {
+        return this.mysql().schema.createTable(tableName, (table: knex.TableBuilder) => {
             for (const key in described){
-                const elem = new Element(described[key], key, this.options().knex)
+                const elem = new Element(described[key], key, this.mysql())
                 if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1)
                     throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
     
