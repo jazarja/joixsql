@@ -1,4 +1,4 @@
-# Joi SQL ⛓️
+# Joi To SQL ⛓️
 > Create your schemas with Joi, generate your tables with Joi-MySQL.
 
 <br />
