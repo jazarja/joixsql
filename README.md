@@ -1,5 +1,5 @@
 # Joi To SQL ⛓️
-> Create your schemas with Joi, generate your tables with Joi-MySQL.
+> Create your schemas with Joi, generate your tables with Joi To SQL.
 
 <br />
 
@@ -57,7 +57,7 @@ alter table `users` add constraint `user_device_foreign` foreign key (`device`) 
 
 <br />
 
-## Joi-MySQL extended
+## Joi To Sql extended
 
 - ### String (default type: `TEXT`):
 
