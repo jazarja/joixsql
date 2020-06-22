@@ -17,13 +17,13 @@ The SQL builder is made with [Knex](https://knexjs.org/).
 ## Usage
 
 ```
-yarn add joi-mysql
+yarn add joi-to-sql
 ```
 
 ### Example:
 ```js
 
-import JoiMySQL, { Engine } from 'joi-mysql'
+import JoiMySQL, { Engine } from 'joi-to-sql'
 const Joi = JoiMySQL(require('@hapi/joi'))
 
 const schema = Joi.object({
