@@ -34,7 +34,7 @@ export default class Is {
     double = () => this.flagExist() && this.flags().double === true
     dateFormatSet = () => this.flagExist() && !!this.flags().format
     dateUnix = () => this.dateFormatSet() && this.flags().format === 'unix'
-    enum = () => this.type() === 'string' && !!this.allow()
+    enum = () => this.string() && !!this.allow()
 
     precisionSet = () => !!_.find(this.rules(), {name: 'precision'})
     maxSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'max'})
@@ -42,11 +42,7 @@ export default class Is {
     minSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'min'})
     greaterSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'greater'})
     portSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'port'})
-    maxSizeSet = () => {
-        if (this.type() === 'string'){
-            return !(!this.maxSet() && this.element().get().stringLengthByType() == -1)
-        }
-    }
+    maxSizeSet = () => this.string() ? !(!this.maxSet() && this.element().get().stringLengthByType() == -1) : undefined
 
     strictlyPositive = () => {
         if (!this.rulesExist()){

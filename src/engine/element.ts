@@ -50,7 +50,7 @@ export default class Element {
         }
         if (this.is().defaultValue()){
             let defaultValue = this.get().defaultValue()
-            if (this.type() === 'date' && defaultValue === 'now'){
+            if (this.is().date() && defaultValue === 'now'){
                 defaultValue = this.is().dateUnix() ? this.knex().fn.now() : this.knex().raw(`now()`)
             }
             column = column.defaultTo(defaultValue)

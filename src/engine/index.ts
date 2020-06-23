@@ -50,7 +50,7 @@ export default class Engine {
             this.setContainPrimaryKey()
         }
 
-        if (e.type() === 'string'){
+        if (e.is().string()){
             if (!e.is().enum() && e.is().defaultValue() && !e.is().maxSizeSet()){
                 throw new Error("A TEXT can't have a default value, you need to set a column size")
             }
@@ -60,7 +60,7 @@ export default class Engine {
             throw new Error("Enum can't be a primary key")
         }
 
-        if (e.is().type() === 'string'){
+        if (e.is().string()){
             const max = e.is().maxSet() ? e.get().max() : e.get().stringLengthByType()
             if ((max > MYSQL_STRING_TYPES[0].max || max == -1) && e.is().unique()){
                 throw new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")                
