@@ -1,8 +1,6 @@
 # Joi To SQL ⛓️
 > Create your schemas with Joi, generate your tables with Joi To SQL.
 
-<br />
-
 #### ⚠️ The project only support the strict minimum features about data types and sql options (ON MYSQL). If you want to improve the library please feel free to pull request!
 The library architecture and its implemetation have been built in such a way that is easy to iterate it and adding more features support or more databases support.
 
@@ -17,13 +15,13 @@ The SQL builder is made with [Knex](https://knexjs.org/).
 ## Usage
 
 ```
-yarn add joi-mysql
+yarn add joi-to-sql
 ```
 
 ### Example:
 ```js
 
-import JoiMySQL, { Engine } from 'joi-mysql'
+import JoiMySQL, { Engine } from 'joi-to-sql'
 const Joi = JoiMySQL(require('@hapi/joi'))
 
 const schema = Joi.object({
