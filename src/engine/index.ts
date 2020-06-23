@@ -5,7 +5,10 @@ import knex, { SchemaBuilder } from 'knex'
 import Element from './element'
 import Options from './options'
 
-import { LIST_SUPPORTED_TYPES } from '../mysql-types'
+import { 
+    LIST_SUPPORTED_TYPES,
+    MYSQL_STRING_TYPES
+} from '../mysql-types'
 
 export default class Engine {
     private _shema: Schema
@@ -41,7 +44,7 @@ export default class Engine {
         //primary key
         if (e.is().primaryKey()){
             if (this.containPrimaryKey())
-                throw new Error("Your schema contain many primary key")
+                throw new Error("Your schema contain many primary keys")
             if (e.is().foreignKey())
                 throw new Error("Your schema can't contain a value that is a primary key and a foreign key")
             this.setContainPrimaryKey()
@@ -50,6 +53,17 @@ export default class Engine {
         if (e.type() === 'string'){
             if (!e.is().enum() && e.is().defaultValue() && !e.is().maxSizeSet()){
                 throw new Error("A TEXT can't have a default value, you need to set a column size")
+            }
+        }
+
+        if (e.is().enum() && e.is().primaryKey()){
+            throw new Error("Enum can't be a primary key")
+        }
+
+        if (e.is().type() === 'string'){
+            const max = e.is().maxSet() ? e.get().max() : e.get().stringLengthByType()
+            if ((max > MYSQL_STRING_TYPES[0].max || max == -1) && e.is().unique()){
+                throw new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")                
             }
         }
 

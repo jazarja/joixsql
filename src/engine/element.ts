@@ -51,11 +51,7 @@ export default class Element {
         if (this.is().defaultValue()){
             let defaultValue = this.get().defaultValue()
             if (this.type() === 'date' && defaultValue === 'now'){
-                if (this.is().dateUnix()){
-                    defaultValue = this.knex().fn.now()
-                } else {
-                    defaultValue = this.knex().raw(`now()`)
-                }
+                defaultValue = this.is().dateUnix() ? this.knex().fn.now() : this.knex().raw(`now()`)
             }
             column = column.defaultTo(defaultValue)
         }
@@ -112,13 +108,7 @@ export default class Element {
 
         const isUnsigned = minimum >= 0 
         const isMinBiggest = (Math.max(Math.abs(minimum), Math.abs(maximum)) * -1 === minimum)
-        const e = _.find(MYSQL_NUMBER_TYPES, (o) => {
-            if (isMinBiggest){
-                return minimum >= o.min
-            } else {
-                return maximum <= o.max
-            }
-        })
+        const e = _.find(MYSQL_NUMBER_TYPES, (o) => isMinBiggest ? minimum >= o.min : maximum <= o.max)
         if (!e)
             type = `double${isUnsigned ? ` unsigned`: ''}`
         else 
@@ -128,43 +118,24 @@ export default class Element {
 
     public parseString = (table: knex.TableBuilder): knex.ColumnBuilder => {
 
-        const errors = {
-            enumPrimary: new Error("Enum can't be a primary key"),
-            uniqueHasMax: new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")
-        }
+        if (this.is().enum())
+            return table.enum(this.key(), this.allow())
 
-        let column: knex.ColumnBuilder
-        if (this.is().enum()){
-            if (this.is().primaryKey())
-                throw errors['enumPrimary']
-            column = table.enum(this.key(), this.allow())
-        } 
-        
-        
+
         else if (this.is().maxSet()){
             const max = this.get().max()
-            if (max <= MYSQL_STRING_TYPES[0].max){
-                column = table.string(this.key(), max)
-            } else {
-                if (this.is().unique())
-                    throw errors['uniqueHasMax']
-                column = table.text(this.key(), max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext')
-            }
+            if (max <= MYSQL_STRING_TYPES[0].max)
+                return table.string(this.key(), max)
+            else 
+                return table.text(this.key(), max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext')
         } 
-        
+
         else {
             const max = this.get().stringLengthByType()
-            if (max > MYSQL_STRING_TYPES[0].max || max == -1){
-                if (this.is().unique())
-                    throw errors['uniqueHasMax']
-                column = table.text(this.key(), max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext'))
-            }
+            if (max > MYSQL_STRING_TYPES[0].max || max == -1)
+                return table.text(this.key(), max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext'))
             else 
-                column = table.string(this.key(), max)
+                return table.string(this.key(), max)
         }
-
-        return column
     }
-
-
 }

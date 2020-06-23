@@ -16,6 +16,10 @@ export default class Is {
     public flagExist = () => typeof this.flags() != 'undefined'
     public rulesExist = () => typeof this.rules() != 'undefined'
 
+    string = () => this.type() === 'string'
+    number = () => this.type() === 'number'
+    date = () => this.type() === 'date'
+    boolean = () => this.type() === 'boolean'
 
     defaultValue = () => this.flagExist() && typeof this.flags().default != 'undefined'
     insensitive = () => this.flagExist() && !!this.flags().insensitive || false
