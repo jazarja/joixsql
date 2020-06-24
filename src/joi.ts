@@ -1,8 +1,9 @@
+import { Root } from '@hapi/joi'
+import { JoiSQLRoot } from './joi-types'
 
+export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
 
-export const JoiMySQL = (Joi) => {
-
-    let JoiMySQL = Joi.extend((joi) => {
+    let JoiMySQL: JoiSQLRoot = Joi.extend((joi) => {
         return {
             type: 'string',
             base: Joi.string(),
@@ -25,7 +26,7 @@ export const JoiMySQL = (Joi) => {
                     }
                 },
                 foreignKey: {
-                    method(table, key) {
+                    method(table: string, key: string) {
                         return this.$_setFlag('foreign_key', [table, key]);
                     },
                     args: [ 'table', 'key' ]
@@ -44,7 +45,7 @@ export const JoiMySQL = (Joi) => {
         }
     });
     
-    JoiMySQL = JoiMySQL.extend((joi) => {
+    JoiMySQL = JoiMySQL.extend((joi: Root) => {
         return {
             type: 'number',
             base: Joi.number(),
@@ -104,7 +105,7 @@ export const JoiMySQL = (Joi) => {
         }
     });
     
-    JoiMySQL = JoiMySQL.extend((joi) => {
+    JoiMySQL = JoiMySQL.extend((joi: Root) => {
         return {
             type: 'date',
             base: Joi.date(),
@@ -145,7 +146,6 @@ export const JoiMySQL = (Joi) => {
             }
         }
     });
-
     return JoiMySQL
 }
 
