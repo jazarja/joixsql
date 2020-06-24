@@ -1,10 +1,11 @@
 # Joi To SQL ⛓️
 > Create your schemas with Joi, generate your tables with Joi To SQL.
 
-#### ⚠️ The project only support the strict minimum features about data types and sql options (ON MYSQL). If you want to improve the library please feel free to pull request!
+#### ℹ️ The project only support the strict minimum features about data types and sql options. If you want to improve the library please feel free to pull request. ⌨️
 The library architecture and its implemetation have been built in such a way that is easy to iterate it and adding more features support or more databases support.
 
 The SQL builder is made with [Knex](https://knexjs.org/).
+The lib currently supports MySQL only.
 
 ### Features
 - Joi types supported : `Date`, `String`, `Number`, `Boolean`
