@@ -76,7 +76,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     }
                 },
                 foreignKey: {
-                    method(table, key) {
+                    method(table: string, key: string) {
                         return this.$_setFlag('foreign_key', [table, key]);
                     },
                     args: [ 'table', 'key' ]

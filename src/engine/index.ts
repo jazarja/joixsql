@@ -10,6 +10,11 @@ import {
     MYSQL_STRING_TYPES
 } from '../mysql-types'
 
+interface IAnalyze {
+    primary_key: string | null
+    foreign_keys: Array<Array<string[2]>>
+} 
+
 export default class Engine {
     private _shema: Schema
     private _hasPrimaryKey: boolean = false
@@ -39,6 +44,7 @@ export default class Engine {
     public containPrimaryKey = () => this._hasPrimaryKey
     public setContainPrimaryKey = () => this._hasPrimaryKey = true
     public resetContainPrimaryKey = () => this._hasPrimaryKey = false
+
 
     private _parseAndTriggerErrors = (e: Element) => {
         //primary key
@@ -73,6 +79,30 @@ export default class Engine {
         if (e.is().dateFormatSet() && !e.is().dateUnix()){
             throw new Error("only unix format is supported")
         }
+    }
+
+    public analyze = (): IAnalyze => {
+        const ret: IAnalyze = {
+            primary_key: null,
+            foreign_keys: []
+        }
+
+        const described = this.schema().describe().keys
+        for (const key in described){
+            const elem = new Element(described[key], key, {} as knex)
+            if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1)
+                throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
+            
+            this._parseAndTriggerErrors(elem)
+            if (elem.is().primaryKey()){
+                ret.primary_key = key
+            }
+            if (elem.is().foreignKey()){
+                const foreign = elem.get().foreignKey()
+                ret.foreign_keys.push(foreign)
+            }
+        }
+        return ret
     }
 
     public table = (tableName: string): SchemaBuilder => {

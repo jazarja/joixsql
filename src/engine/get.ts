@@ -18,8 +18,8 @@ export default class Get {
     public rules = () => this.element().rules()
     public type = () => this.element().type()
 
-    defaultValue = () => this.is().defaultValue() ? this.flags().default : undefined
-    foreignKey = () => this.is().foreignKey() ? this.flags().foreign_key : undefined
+    defaultValue = (): any => this.is().defaultValue() ? this.flags().default : undefined
+    foreignKey = (): Array<string[2]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
 
     max = () => this.is().maxSet() ? _.find(this.rules(), {name: 'max'}).args.limit : undefined
     greater = () => this.is().greaterSet() ? _.find(this.rules(), {name: 'greater'}).args?.limit : undefined
