@@ -12,8 +12,22 @@ import {
 
 interface IAnalyze {
     primary_key: string | null
-    foreign_keys: Array<Array<string[2]>>
+    foreign_keys: Array<IForeign>
+    refs: Array<IRef>
 } 
+
+interface IRef {
+    origin: string
+    dest: string
+}
+
+interface IForeign {
+    key: string
+    table_reference: string
+    key_reference: string
+    update_cascade: boolean
+    delete_cascade: boolean
+}
 
 export default class Engine {
     private _shema: Schema
@@ -84,25 +98,53 @@ export default class Engine {
     public analyze = (): IAnalyze => {
         const ret: IAnalyze = {
             primary_key: null,
-            foreign_keys: []
+            foreign_keys: [],
+            refs: []
         }
 
         const described = this.schema().describe().keys
         for (const key in described){
-            const elem = new Element(described[key], key, {} as knex)
-            if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1)
-                throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
-            
+            const elemOrigin = new Element(described[key], key, {} as knex)
+            const elem = this._parseSupportedAnys(elemOrigin)            
             this._parseAndTriggerErrors(elem)
+
+            if (elemOrigin.is().ref()){
+                ret.refs.push({
+                    origin: key,
+                    dest: elemOrigin.get().ref()
+                })
+            }
             if (elem.is().primaryKey()){
                 ret.primary_key = key
             }
             if (elem.is().foreignKey()){
                 const foreign = elem.get().foreignKey()
-                ret.foreign_keys.push(foreign)
+                ret.foreign_keys.push({
+                    key: key,
+                    table_reference: foreign[0],
+                    key_reference: foreign[1],
+                    delete_cascade: elem.is().deleteCascade(),
+                    update_cascade: elem.is().updateCascade()
+                })
             }
         }
         return ret
+    }
+
+    private _parseSupportedAnys = (elem: Element): Element => {
+        const key = elem.key()
+
+        if (elem.is().ref()){
+            const ref = elem.get().ref()
+            const newElemObject = this.schema().describe().keys[ref]
+            return new Element(newElemObject, key, this.mysql())
+        }
+
+        if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1){
+            throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
+        }
+        
+        return elem
     }
 
     public table = (tableName: string): SchemaBuilder => {
@@ -111,10 +153,7 @@ export default class Engine {
 
         return this.mysql().schema.createTable(tableName, (table: knex.TableBuilder) => {
             for (const key in described){
-                const elem = new Element(described[key], key, this.mysql())
-                if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1)
-                    throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
-    
+                const elem = this._parseSupportedAnys(new Element(described[key], key, this.mysql()))    
                 this._parseAndTriggerErrors(elem)
                 elem.addColumnOptions(elem.is().increment() ? table.increments(elem.key()) : elem.parse(table))
             }

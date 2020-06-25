@@ -36,6 +36,7 @@ export default class Is {
     dateUnix = () => this.dateFormatSet() && this.flags().format === 'unix'
     enum = () => this.string() && !!this.allow()
 
+    ref = () => !!this.allow() && this.allow().length > 0 && !!Object.assign({}, ...this.allow()).ref
     precisionSet = () => !!_.find(this.rules(), {name: 'precision'})
     maxSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'max'})
     lessSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'less'})

@@ -17,6 +17,7 @@ export default class Get {
     public flags = () => this.element().flags()
     public rules = () => this.element().rules()
     public type = () => this.element().type()
+    public allow = () => this.element().allow()
 
     defaultValue = (): any => this.is().defaultValue() ? this.flags().default : undefined
     foreignKey = (): Array<string[2]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
@@ -26,7 +27,8 @@ export default class Get {
     min = () => this.is().minSet() ? _.find(this.rules(), {name: 'min'}).args?.limit : undefined
     less = () => this.is().lessSet() ? _.find(this.rules(), {name: 'less'}).args?.limit : undefined
     precision = () => this.is().precisionSet() ? _.find(this.rules(), {name: 'precision'}).args?.limit : undefined
-    
+    ref = () => this.is().ref() ? Object.assign({}, ...this.allow()).ref.path[0] : undefined
+
     stringLengthByType = () => {
         if (this.type() !== 'string'){
             return -1
