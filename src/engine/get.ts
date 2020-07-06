@@ -20,7 +20,8 @@ export default class Get {
     public allow = () => this.element().allow()
 
     defaultValue = (): any => this.is().defaultValue() ? this.flags().default : undefined
-    foreignKey = (): Array<string[2]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
+    foreignKey = (): Array<any[3]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
+    group = (): string[] => this.is().group() ? this.flags().group : undefined
 
     max = () => this.is().maxSet() ? _.find(this.rules(), {name: 'max'}).args.limit : undefined
     greater = () => this.is().greaterSet() ? _.find(this.rules(), {name: 'greater'}).args?.limit : undefined

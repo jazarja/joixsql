@@ -1,6 +1,7 @@
 import { Schema } from '@hapi/joi'
 import _ from 'lodash'
 import knex, { SchemaBuilder } from 'knex'
+import { IAnalyze } from './types'
 
 import Element from './element'
 import Options from './options'
@@ -9,25 +10,6 @@ import {
     LIST_SUPPORTED_TYPES,
     MYSQL_STRING_TYPES
 } from '../mysql-types'
-
-interface IAnalyze {
-    primary_key: string | null
-    foreign_keys: Array<IForeign>
-    refs: Array<IRef>
-} 
-
-interface IRef {
-    origin: string
-    dest: string
-}
-
-interface IForeign {
-    key: string
-    table_reference: string
-    key_reference: string
-    update_cascade: boolean
-    delete_cascade: boolean
-}
 
 export default class Engine {
     private _shema: Schema
@@ -99,7 +81,9 @@ export default class Engine {
         const ret: IAnalyze = {
             primary_key: null,
             foreign_keys: [],
-            refs: []
+            refs: [],
+            defaults: {},
+            groups: {}
         }
 
         const described = this.schema().describe().keys
@@ -114,18 +98,43 @@ export default class Engine {
                     dest: elemOrigin.get().ref()
                 })
             }
+            
             if (elem.is().primaryKey()){
                 ret.primary_key = key
             }
+            
             if (elem.is().foreignKey()){
                 const foreign = elem.get().foreignKey()
                 ret.foreign_keys.push({
                     key: key,
                     table_reference: foreign[0],
                     key_reference: foreign[1],
+                    group_id: foreign[2],
                     delete_cascade: elem.is().deleteCascade(),
                     update_cascade: elem.is().updateCascade()
                 })
+            }
+
+            if (elem.is().defaultValue()){
+                let dv = elem.get().defaultValue()
+                if (elem.is().date() && dv === 'now'){
+                    if (elem.is().dateUnix())
+                        dv = new Date().getTime() / 1000
+                    else {
+                        dv = new Date()
+                        dv.setMilliseconds(0)
+                    }
+                }
+                ret.defaults[key] = dv
+            }
+
+            if (elem.is().group()){
+                for (const e of elem.get().group()){
+                    if (!(e in ret.groups))
+                        ret.groups[e] = [key]
+                    else 
+                        ret.groups[e].push(key)
+                }
             }
         }
         return ret

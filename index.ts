@@ -3,8 +3,10 @@ import {
     JoiSQLStringSchema,
     JoiSQLNumberSchema,
     JoiSQLDateSchema,
+    JoiSQLBooleanSchema,
     JoiSQLRoot
 } from './src/joi-types'
+import { IAnalyze, IRef, IForeign } from './src/engine/types'
 import Engine from './src/engine'
 
 export default {
@@ -18,5 +20,9 @@ export {
     JoiSQLStringSchema,
     JoiSQLNumberSchema,
     JoiSQLDateSchema,
-    JoiSQLRoot
+    JoiSQLBooleanSchema,
+    JoiSQLRoot,
+    IAnalyze,
+    IRef,
+    IForeign
 }

@@ -9,10 +9,10 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
             base: Joi.string(),
             flags: {
                 unique: { default: false },
-                primary_key: { default: false },
                 foreign_key: { default: null },
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
+                group: { default: null },
             },
             rules: {
                 unique: {
@@ -20,16 +20,11 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                         return this.$_setFlag('unique', true);
                     }
                 },
-                primaryKey: {
-                    method() {
-                        return this.$_setFlag('primary_key', true);
-                    }
-                },
                 foreignKey: {
-                    method(table: string, key: string) {
-                        return this.$_setFlag('foreign_key', [table, key]);
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('foreign_key', [table, key, groupID]);
                     },
-                    args: [ 'table', 'key' ]
+                    args: [ 'table', 'key', 'groupID' ]
                 },
                 deleteCascade: {
                     method() {
@@ -41,6 +36,12 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                         return this.$_setFlag('update_cascade', true);
                     },
                 },
+                group: {
+                    method(ids: string[]) {
+                        return this.$_setFlag('group', ids);
+                    },
+                    args: [ 'ids' ]
+                }
             }
         }
     });
@@ -58,6 +59,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 foreign_key: { default: null },
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
+                group: { default: null },
             },
             rules: {
                 unique: {
@@ -67,6 +69,8 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 },
                 autoIncrement: {
                     method() {
+                        this.$_setFlag('primary_key', true);
+                        this.$_setFlag('unique', true);
                         return this.$_setFlag('auto_increment', true);
                     }
                 },
@@ -76,10 +80,10 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     }
                 },
                 foreignKey: {
-                    method(table: string, key: string) {
-                        return this.$_setFlag('foreign_key', [table, key]);
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('foreign_key', [table, key, groupID]);
                     },
-                    args: [ 'table', 'key' ]
+                    args: [ 'table', 'key', 'groupID' ]
                 },
                 deleteCascade: {
                     method() {
@@ -100,6 +104,12 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     method() {
                         return this.$_setFlag('double', true);
                     }
+                },
+                group: {
+                    method(ids: string[]) {
+                        return this.$_setFlag('group', ids);
+                    },
+                    args: [ 'ids' ]
                 }
             }
         }
@@ -115,6 +125,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 foreign_key: { default: null },
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
+                group: { default: null },
             },
             rules: {
                 unique: {
@@ -128,10 +139,10 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     }
                 },
                 foreignKey: {
-                    method(table, key) {
-                        return this.$_setFlag('foreign_key', [table, key]);
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('foreign_key', [table, key, groupID]);
                     },
-                    args: [ 'table', 'key' ]
+                    args: [ 'table', 'key', 'groupID' ]
                 },
                 deleteCascade: {
                     method() {
@@ -142,10 +153,36 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     method() {
                         return this.$_setFlag('update_cascade', true);
                     },
+                },
+                group: {
+                    method(ids: string[]) {
+                        return this.$_setFlag('group', ids);
+                    },
+                    args: [ 'ids' ]
                 }
             }
         }
     });
+
+    JoiMySQL = JoiMySQL.extend((joi: Root) => {
+        return {
+            type: 'boolean',
+            base: Joi.boolean(),
+            flags: {
+                group: { default: null },
+            },
+            rules: {
+                group: {
+                    method(ids: string[]) {
+                        return this.$_setFlag('group', ids);
+                    },
+                    args: [ 'ids' ]
+                }
+            }
+        }
+    });
+
+
     return JoiMySQL
 }
 
