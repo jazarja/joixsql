@@ -10,6 +10,8 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
             flags: {
                 unique: { default: false },
                 foreign_key: { default: null },
+                populate: { default: null },
+                noPopulate: {default: false},
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
                 group: { default: null },
@@ -20,9 +22,20 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                         return this.$_setFlag('unique', true);
                     }
                 },
+                noPopulate: {
+                    method() {
+                        return this.$_setFlag('noPopulate', true);
+                    }
+                },
                 foreignKey: {
                     method(table: string, key: string, groupID: void | number) {
                         return this.$_setFlag('foreign_key', [table, key, groupID]);
+                    },
+                    args: [ 'table', 'key', 'groupID' ]
+                },
+                populate: {
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('populate', [table, key, groupID]);
                     },
                     args: [ 'table', 'key', 'groupID' ]
                 },
@@ -57,6 +70,8 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 float: { default: false },
                 double: { default: false },
                 foreign_key: { default: null },
+                populate: { default: null },
+                noPopulate: {default: false},
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
                 group: { default: null },
@@ -65,6 +80,11 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 unique: {
                     method() {
                         return this.$_setFlag('unique', true);
+                    }
+                },
+                noPopulate: {
+                    method() {
+                        return this.$_setFlag('noPopulate', true);
                     }
                 },
                 autoIncrement: {
@@ -82,6 +102,12 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 foreignKey: {
                     method(table: string, key: string, groupID: void | number) {
                         return this.$_setFlag('foreign_key', [table, key, groupID]);
+                    },
+                    args: [ 'table', 'key', 'groupID' ]
+                },
+                populate: {
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('populate', [table, key, groupID]);
                     },
                     args: [ 'table', 'key', 'groupID' ]
                 },
@@ -123,6 +149,8 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 unique: { default: false },
                 primary_key: { default: false },
                 foreign_key: { default: null },
+                populate: { default: null },
+                noPopulate: {default: false},
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
                 group: { default: null },
@@ -133,6 +161,11 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                         return this.$_setFlag('unique', true);
                     }
                 },
+                noPopulate: {
+                    method() {
+                        return this.$_setFlag('noPopulate', true);
+                    }
+                },
                 primaryKey: {
                     method() {
                         return this.$_setFlag('primary_key', true);
@@ -141,6 +174,12 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 foreignKey: {
                     method(table: string, key: string, groupID: void | number) {
                         return this.$_setFlag('foreign_key', [table, key, groupID]);
+                    },
+                    args: [ 'table', 'key', 'groupID' ]
+                },
+                populate: {
+                    method(table: string, key: string, groupID: void | number) {
+                        return this.$_setFlag('populate', [table, key, groupID]);
                     },
                     args: [ 'table', 'key', 'groupID' ]
                 },

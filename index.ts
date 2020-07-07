@@ -6,7 +6,7 @@ import {
     JoiSQLBooleanSchema,
     JoiSQLRoot
 } from './src/joi-types'
-import { IAnalyze, IRef, IForeign } from './src/engine/types'
+import { IAnalyze, IRef, IForeign, IPopulate } from './src/engine/types'
 import Engine from './src/engine'
 
 export default {
@@ -24,5 +24,6 @@ export {
     JoiSQLRoot,
     IAnalyze,
     IRef,
-    IForeign
+    IForeign,
+    IPopulate
 }

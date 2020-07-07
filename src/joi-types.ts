@@ -3,6 +3,8 @@ import Joi, { Root, StringSchema, DateSchema, NumberSchema, BooleanSchema } from
 export interface JoiSQLStringSchema extends StringSchema {
     unique(): this;
     foreignKey(table: string, key: string, groupID: void | string): this;
+    populate(table: string, key: string, groupID: void | string): this;
+    noPopulate(): this;
     deleteCascade(): this;
     updateCascade(): this;
     group(ids: string[]): this;
@@ -13,6 +15,8 @@ export interface JoiSQLNumberSchema extends NumberSchema {
     primaryKey(): this;
     autoIncrement(): this;
     foreignKey(table: string, key: string, groupID: void | string): this;
+    populate(table: string, key: string, groupID: void | string): this;
+    noPopulate(): this;
     deleteCascade(): this;
     updateCascade(): this;
     float(): this;
@@ -24,6 +28,8 @@ export interface JoiSQLDateSchema extends DateSchema {
     unique(): this;
     primaryKey(): this;
     foreignKey(table: string, key: string, groupID: void | string): this;
+    populate(table: string, key: string, groupID: void | string): this;
+    noPopulate(): this;
     deleteCascade(): this;
     updateCascade(): this;
     group(ids: string[]): this;

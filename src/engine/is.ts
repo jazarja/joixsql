@@ -26,9 +26,11 @@ export default class Is {
     required = () => this.flagExist() && this.flags().presence === 'required' || false
     unique = () =>  this.flagExist() && this.flags().unique === true || false
     increment = () => this.flagExist() && this.flags().auto_increment === true || false
-    primaryKey = () => this.flagExist() && this.flags().primary_key === true || false
+    primaryKey = () => this.flagExist() && ((this.flags().primary_key === true || false) || this.increment())
     foreignKey = () => this.flagExist() && Array.isArray(this.flags().foreign_key) && this.flags().foreign_key.length >= 2
+    populate = () => this.flagExist() && Array.isArray(this.flags().populate) && this.flags().populate.length >= 2
     group = () => this.flagExist() && Array.isArray(this.flags().group)
+    noPopulate = () => this.flagExist() && this.flags().noPopulate === true || false
     deleteCascade = () => this.foreignKey() && this.flags().delete_cascade
     updateCascade = () => this.foreignKey() && this.flags().update_cascade
     float = () => this.flagExist() && this.flags().float === true

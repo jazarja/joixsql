@@ -21,6 +21,7 @@ export default class Get {
 
     defaultValue = (): any => this.is().defaultValue() ? this.flags().default : undefined
     foreignKey = (): Array<any[3]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
+    populate = (): Array<any[3]> => this.is().populate() ? this.flags().populate : undefined
     group = (): string[] => this.is().group() ? this.flags().group : undefined
 
     max = () => this.is().maxSet() ? _.find(this.rules(), {name: 'max'}).args.limit : undefined

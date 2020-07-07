@@ -81,6 +81,7 @@ export default class Engine {
         const ret: IAnalyze = {
             primary_key: null,
             foreign_keys: [],
+            populate: [],
             refs: [],
             defaults: {},
             groups: {}
@@ -109,9 +110,23 @@ export default class Engine {
                     key: key,
                     table_reference: foreign[0],
                     key_reference: foreign[1],
+                    no_populate: elem.is().noPopulate(),
                     group_id: foreign[2],
+                    required: elem.is().required(),
                     delete_cascade: elem.is().deleteCascade(),
                     update_cascade: elem.is().updateCascade()
+                })
+            }
+
+            if (elem.is().populate()){
+                const populate = elem.get().populate()
+                ret.populate.push({
+                    key: key,
+                    table_reference: populate[0],
+                    key_reference: populate[1],
+                    group_id: populate[2],
+                    no_populate: elem.is().noPopulate()
+
                 })
             }
 
