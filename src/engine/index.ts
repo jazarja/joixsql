@@ -69,6 +69,15 @@ export default class Engine {
             }
         }
 
+        if (e.is().defaultValue() && e.is().date()){
+            const defaultValue = e.get().defaultValue()
+            if (!e.is().dateUnix()){
+                if (defaultValue != 'now'){
+                    throw new Error(`Default on non-unix date can only be 'now' in this version. key:${e.key()}`)
+                }
+            }
+        }
+
         this.options().onParseError(e)
 
         //only unix allowed on date format
@@ -81,6 +90,7 @@ export default class Engine {
         const ret: IAnalyze = {
             primary_key: null,
             foreign_keys: [],
+            all_keys: [],
             populate: [],
             refs: [],
             defaults: {},
@@ -92,6 +102,8 @@ export default class Engine {
             const elemOrigin = new Element(described[key], key, {} as knex)
             const elem = this._parseSupportedAnys(elemOrigin)            
             this._parseAndTriggerErrors(elem)
+
+            ret.all_keys.push(key)
 
             if (elemOrigin.is().ref()){
                 ret.refs.push({
@@ -171,15 +183,50 @@ export default class Engine {
         return elem
     }
 
+    public tableStr = (tableName: string): string => {
+        this._resetTemporarys()
+        const described = this.schema().describe().keys
+        
+        const columnSTR = {string: `return knex.schema.createTable('${tableName}', function(t) {\n`}
+
+        this.mysql().schema.createTable(tableName, (table: knex.TableBuilder) => {
+            for (const key in described){
+                const elem = this._parseSupportedAnys(new Element(described[key], key, this.mysql()))    
+                this._parseAndTriggerErrors(elem)
+                let col: any
+                columnSTR.string += `   t`
+                if (elem.is().increment()){
+                    columnSTR.string += `.increments('${elem.key()}')`
+                    col = table.increments(elem.key())
+                } else {
+                    col =elem.parse(table, columnSTR)
+                }
+                elem.addColumnOptions(col, columnSTR)
+                columnSTR.string += ';\n'
+            }
+        }).toString()
+        columnSTR.string += `   }
+        );`
+        return columnSTR.string
+    }
+
+
+
     public table = (tableName: string): SchemaBuilder => {
         this._resetTemporarys()
         const described = this.schema().describe().keys
-
+        
         return this.mysql().schema.createTable(tableName, (table: knex.TableBuilder) => {
             for (const key in described){
                 const elem = this._parseSupportedAnys(new Element(described[key], key, this.mysql()))    
                 this._parseAndTriggerErrors(elem)
-                elem.addColumnOptions(elem.is().increment() ? table.increments(elem.key()) : elem.parse(table))
+                let col: any
+                if (elem.is().increment()){
+                    col = table.increments(elem.key())
+                } else {
+                    col = elem.parse(table, {string: ''})
+                }
+                elem.addColumnOptions(col, {string: ''})
             }
         })
     }

@@ -36,61 +36,84 @@ export default class Element {
     public get = () => this._get
     public knex = (): knex => this._knexCO
 
-    public addColumnOptions = (column: knex.ColumnBuilder) => {
+    public addColumnOptions = (column: knex.ColumnBuilder, columnSTR: any) => {
      
         if (this.is().unique()){
             column = column.unique()
+            columnSTR.string += '.unique()'
         }
         if (this.is().primaryKey()){
             column = column.primary()
+            columnSTR.string += '.primary()'
         }
         if (this.is().foreignKey()){
             const [table, key] = this.get().foreignKey()
             column = column.references(key).inTable(table)
+            columnSTR.string += `.references('${key}').inTable('${table}')`
         }
         if (this.is().defaultValue()){
-            let defaultValue = this.get().defaultValue()
-            if (this.is().date() && defaultValue === 'now'){
+            const initialDefaultValue = this.get().defaultValue()
+            let defaultValue = initialDefaultValue
+
+            if (this.is().date() && initialDefaultValue === 'now'){
+                columnSTR.string += `.defaultTo(${initialDefaultValue === 'now' ? (this.is().dateUnix() ? `knex.fn.now()` : `knex.raw('now()')`) : `'${initialDefaultValue}'`})`
                 defaultValue = this.is().dateUnix() ? this.knex().fn.now() : this.knex().raw(`now()`)
+            } else {
+                columnSTR.string += `.defaultTo('${defaultValue}')`
             }
             column = column.defaultTo(defaultValue)
         }
         if (this.is().required()){
             column = column.notNullable()
+            columnSTR.string += `.notNullable()`
         }
         if (this.is().deleteCascade()){
             column = column.onDelete('CASCADE')
+            columnSTR.string += `.onDelete('CASCADE')`
         }
         if (this.is().updateCascade()){
             column = column.onUpdate('CASCADE')
+            columnSTR.string += `.onUpdate('CASCADE')`
         }
     }
 
-    public parse = (table: knex.TableBuilder): knex.ColumnBuilder => {
+    public parse = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
         const typeParses: any = {
             number: this.parseNumber,
             string: this.parseString,
             date: this.parseDate,
-            boolean: () => table.boolean(this.key()),
+            boolean: this.parseBoolean,
         }
-        return typeParses[this.type()](table)
+        return typeParses[this.type()](column, columnSTR)
     }
 
-    public parseDate = (table: knex.TableBuilder): knex.ColumnBuilder => {
+    public parseBoolean = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
+        columnSTR.string += `.boolean('${this.key()}')`
+        return column.boolean(this.key())
+    }
+
+    public parseDate = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
         if (this.is().dateUnix()){
-            return table.timestamp(this.key())
+            columnSTR.string += `.timestamp('${this.key()}')`
+            return column.timestamp(this.key())
         }
-        return table.dateTime(this.key())
+        columnSTR.string += `.dateTime('${this.key()}')`
+        return column.dateTime(this.key())
     }
 
-    public parseNumber = (table: knex.TableBuilder): knex.ColumnBuilder => {
+    public parseNumber = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
 
-        if (this.is().float() || this.is().precisionSet())
-            return table.float(this.key(), this.get().precision())
-        if (this.is().double())
-            return table.specificType(this.key(),`DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}`)
+        if (this.is().float() || this.is().precisionSet()){
+            columnSTR.string += `.float('${this.key()}', ${this.get().precision() ? this.get().precision() : '8'}, 2)`
+            return column.float(this.key(), this.get().precision() | 8, 2)
+        }
+        if (this.is().double()){
+            columnSTR.string += `.specificType('${this.key()}', 'DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}')`
+            return column.specificType(this.key(),`DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}`)
+        }
         if (this.is().portSet()){
-            return table.integer(this.key()).unsigned()
+            columnSTR.string += `.integer('${this.key()}').unsigned()`
+            return column.integer(this.key()).unsigned()
         }
 
         let minimum: any, maximum: any;
@@ -113,29 +136,39 @@ export default class Element {
             type = `double${isUnsigned ? ` unsigned`: ''}`
         else 
             type = `${e.type}${isUnsigned ? ` unsigned` : ''}`
-        return table.specificType(this.key(), type)
+        columnSTR.string += `.specificType('${this.key()}', '${type}')`
+        return column.specificType(this.key(), type)
     }
 
-    public parseString = (table: knex.TableBuilder): knex.ColumnBuilder => {
+    public parseString = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
 
-        if (this.is().enum())
-            return table.enum(this.key(), this.allow())
-
-
+        if (this.is().enum()){
+            columnSTR.string += `.enum('${this.key()}', [${this.allow().map((v: string) => `'${v}'`).join(',')}])`    
+            return column.enum(this.key(), this.allow())
+        }
+        
         else if (this.is().maxSet()){
             const max = this.get().max()
-            if (max <= MYSQL_STRING_TYPES[0].max)
-                return table.string(this.key(), max)
-            else 
-                return table.text(this.key(), max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext')
+            if (max <= MYSQL_STRING_TYPES[0].max){
+                columnSTR.string += `.string('${this.key()}', ${max})`
+                return column.string(this.key(), max)
+            } else {
+                columnSTR.string += `.text('${this.key()}', ${max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`})`
+                return column.text(this.key(), max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`)
+            }
         } 
 
         else {
             const max = this.get().stringLengthByType()
-            if (max > MYSQL_STRING_TYPES[0].max || max == -1)
-                return table.text(this.key(), max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? 'longtext' : 'mediumtext'))
-            else 
-                return table.string(this.key(), max)
+            if (max > MYSQL_STRING_TYPES[0].max || max == -1){
+                columnSTR.string += `.text('${this.key()}', ${max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`)})`
+                return column.text(this.key(), max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`))
+            }
+            else {
+                columnSTR.string += `.string('${this.key()}', ${max})`
+                return column.string(this.key(), max)
+            }
         }
     }
+
 }

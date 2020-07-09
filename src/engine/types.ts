@@ -2,6 +2,7 @@ interface IAnalyze {
     primary_key: string | null
     foreign_keys: Array<IForeign>
     populate: Array<IPopulate>
+    all_keys: Array<string>
     refs: Array<IRef>
     defaults: any
     groups: any
