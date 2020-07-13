@@ -38,7 +38,7 @@ export default class Element {
 
     public addColumnOptions = (column: knex.ColumnBuilder, columnSTR: any) => {
      
-        if (this.is().unique()){
+        if (this.is().unique() && !this.is().primaryKey()){
             column = column.unique()
             columnSTR.string += '.unique()'
         }
@@ -63,15 +63,15 @@ export default class Element {
             }
             column = column.defaultTo(defaultValue)
         }
-        if (this.is().required()){
+        if (this.is().required() && !this.is().primaryKey()){
             column = column.notNullable()
             columnSTR.string += `.notNullable()`
         }
-        if (this.is().deleteCascade()){
+        if (this.is().deleteCascade() && this.is().foreignKey()){
             column = column.onDelete('CASCADE')
             columnSTR.string += `.onDelete('CASCADE')`
         }
-        if (this.is().updateCascade()){
+        if (this.is().updateCascade() && this.is().foreignKey()){
             column = column.onUpdate('CASCADE')
             columnSTR.string += `.onUpdate('CASCADE')`
         }
@@ -133,7 +133,7 @@ export default class Element {
         const isMinBiggest = (Math.max(Math.abs(minimum), Math.abs(maximum)) * -1 === minimum)
         const e = _.find(MYSQL_NUMBER_TYPES, (o) => isMinBiggest ? minimum >= o.min : maximum <= o.max)
         if (!e)
-            type = `double${isUnsigned ? ` unsigned`: ''}`
+            type = `DOUBLE${isUnsigned ? ` unsigned`: ''}`
         else 
             type = `${e.type}${isUnsigned ? ` unsigned` : ''}`
         columnSTR.string += `.specificType('${this.key()}', '${type}')`

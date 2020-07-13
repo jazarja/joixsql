@@ -2,7 +2,6 @@ import knex from 'knex'
 
 interface IOptions {
     onParseError: Function,
-    mysqlConfig: knex.ConnectionConfig
 }
 
 export default class Options {
@@ -15,5 +14,4 @@ export default class Options {
     set = (options: any) => this._options = Object.assign({}, this._options, options)
     get = () => this._options
     onParseError = (...props: any) => this.get().onParseError(...props)
-    mysqlConfig = () => this.get().mysqlConfig
 }

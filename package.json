@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Fantasim/joi-to-sql#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "fs": "^0.0.1-security",
     "knex": "^0.21.1",
     "lodash": "^4.17.15",
     "mysql": "^2.18.1"
