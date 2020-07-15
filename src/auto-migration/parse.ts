@@ -29,6 +29,7 @@ export const columnsToInformations = (arrayColumn: TColumn[]): IInfo[] => {
     for (const column of arrayColumn){
         const info = {
             index: i,
+            column,
             date: column.indexOf('t.dateTime(') != -1,
             timestamp: column.indexOf('t.timestamp(') != -1,
             string: column.indexOf('t.string(') != -1,

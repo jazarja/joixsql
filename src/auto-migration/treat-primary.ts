@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { ITemplate, IFullColumn, TObjectStringString} from './types'
-import { clearMethods } from './lib'
+import { ITemplate, IFullColumn, TObjectStringString, IChange, IInfo} from './types'
+import { clearMethods, removeMethodFromColumn } from './lib'
 
-export default (ret: ITemplate, before: IFullColumn, now: IFullColumn) => {
+export default (ret: ITemplate, before: IChange, now: IChange, tableName: string) => {
 
     const methods: TObjectStringString = {
         drop: 'dropPrimary',
@@ -12,61 +12,44 @@ export default (ret: ITemplate, before: IFullColumn, now: IFullColumn) => {
 
     const dropPrimary = (key: string) => `  t.${methods.drop}('${key}');\n`
     const setPrimary = (key: string) => `   t.${methods.set}('${key}');\n`
-    const setIncrements = (key: string) => `   t.${methods.autoIncrement}('${key}');\n`
-    const dropSetPrimary = (key1: string, key2: string) => `${dropPrimary(key1)}    ${setPrimary(key2)}`
-    const dropSetIncrement = (key1: string, key2: string) => `${dropPrimary(key1)}    ${setIncrements(key2)}`
+    const setIncrements = (table: string, key: string) => `knex.raw(\`ALTER TABLE ${table} CHANGE ${key} ${key} INT(10) UNSIGNED NOT NULL AUTO_INCREMENT\`),\n`
 
-    const prevPrimary = _.find(before.infos, o => o.hasPrimaryKey)
-    const nowPrimary = _.find(now.infos, o => o.hasPrimaryKey)
+    const { key } = now.info
+    if (!before.info.hasPrimaryKey && now.info.hasPrimaryKey){
 
-    if (!!prevPrimary && !nowPrimary){
-        const { key } = prevPrimary
+        //up
+        ret.up += setPrimary(key)
+        if (now.info.hasAutoIncrement)
+            ret.extraUp += setIncrements(tableName, key)
 
-        ret.up = dropPrimary(key) + ret.up
-
-        if (prevPrimary.hasAutoIncrement)
-            ret.down += setIncrements(key)
-        else 
-            ret.down += setPrimary(key)
-
-    } else if (!prevPrimary && !!nowPrimary){
-        const { key } = nowPrimary
-        
-        if (nowPrimary.hasAutoIncrement)
-            ret.up += setIncrements(key)
-        else 
-            ret.up += setPrimary(key)
-        
+        //down
         ret.down = dropPrimary(key) + ret.down
 
-    } else if (!!prevPrimary && !!nowPrimary){
+    } else if (before.info.hasPrimaryKey && !now.info.hasPrimaryKey){
 
-        if (prevPrimary.hasAutoIncrement && !nowPrimary.hasAutoIncrement){
+        //up
+        ret.up = ret.up + dropPrimary(key)
 
-            ret.up += dropSetPrimary(prevPrimary.key, nowPrimary.key)
-            ret.down += dropSetIncrement(nowPrimary.key, prevPrimary.key)
-        
-        } else if (!prevPrimary.hasAutoIncrement && nowPrimary.hasAutoIncrement){
-        
-            ret.up += dropSetIncrement(prevPrimary.key, nowPrimary.key)
-            ret.down += dropSetPrimary(nowPrimary.key, prevPrimary.key)
-        
-        } else if (prevPrimary.key != nowPrimary.key){
+        //down
+        ret.down += setPrimary(key)
+        if (before.info.hasAutoIncrement)
+            ret.extraDown += setIncrements(tableName, key)
 
-            if (prevPrimary.hasAutoIncrement && nowPrimary.hasAutoIncrement){
-                ret.up += dropSetIncrement(prevPrimary.key, nowPrimary.key)
-                ret.down += dropSetIncrement(nowPrimary.key, prevPrimary.key)
-            } else {
-                ret.up += dropSetPrimary(prevPrimary.key, nowPrimary.key)
-                ret.down += dropSetPrimary(nowPrimary.key, prevPrimary.key)
-            }
+        now.column = 't' //Bypass a non desired behavior due to the increments function that does many thing in one function contrary to other table builder function that are all 1 for 1.
+
+    } else if (before.info.hasPrimaryKey && now.info.hasPrimaryKey){
+
+        if (before.info.hasAutoIncrement && !now.info.hasAutoIncrement){
+            //ret.up here is treated in the loop that call this function
+            ret.extraDown += setIncrements(tableName, key)
+        }
+
+        else if (!before.info.hasAutoIncrement && now.info.hasAutoIncrement){
+            ret.extraUp += setIncrements(tableName, key)
+            ret.down += `${removeMethodFromColumn(before.column, 'primary')}.alter();\n`
         }
     }
 
-    for (let i = 0; i < before.columns.length; i++){
-        before.columns[i] = clearMethods(before.columns[i], methods)
-    }
-    for (let i = 0; i <  now.columns.length; i++){
-        now.columns[i] = clearMethods(now.columns[i], methods)
-    }
+    before.column = clearMethods(before.column, methods)
+    now.column = clearMethods(now.column, methods)
 }

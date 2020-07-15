@@ -1,7 +1,9 @@
+import Joi from '@hapi/joi'
 
 export type TColumn = string
 
 export interface IInfo {
+    column: string
     index: number
     date: boolean
     timestamp: boolean
@@ -23,6 +25,11 @@ export interface IInfo {
     hasAutoIncrement: boolean
 }
 
+export interface IMigration {
+    schema: Joi.Schema
+    table: string
+}
+
 export interface IChange {
     column: TColumn
     info: IInfo
@@ -36,6 +43,8 @@ export interface IRenamed {
 export interface ITemplate {
     up: string
     down: string
+    extraUp: string
+    extraDown: string
 }
 
 export interface IFullColumn {

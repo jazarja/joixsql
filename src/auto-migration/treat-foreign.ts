@@ -19,7 +19,7 @@ export default (ret: ITemplate, before: IChange, now: IChange) => {
     const setOnDeleteCascade = () => `.${methods.onDelete}('CASCADE')`
     const setOnUpdateCascade = () => `.${methods.onUpdate}('CASCADE')`
     
-    const setFullForeign = (key: string, table: string, ref: string, info: IInfo) => set(key) + setInTable(table) + setReferences(ref) + setCascadeIfRequired(info) + ';\n'
+    const setFullForeign = (key: string, table: string, ref: string, info: IInfo) => set(key) + setReferences(ref) + setInTable(table) + setCascadeIfRequired(info) + ';\n'
 
     const setCascadeIfRequired = (info: IInfo) => {
         const { isOnDeleteCascade, isOnUpateCascade } = info

@@ -6,8 +6,10 @@ let connexion: any = null
 
 interface IConfig {
     mysqlConfig: MySqlConnectionConfig
-    historyDir: string,
+    historyDir: string
     production: boolean
+    criticalCode: string | null
+    enableCriticalConfirmation: boolean
 }
 
 export class Config {
@@ -15,7 +17,9 @@ export class Config {
     private _config: IConfig = {
         mysqlConfig: {},
         historyDir: '',
-        production: false
+        production: false,
+        criticalCode: null,
+        enableCriticalConfirmation: true
     }
 
     private _makeConnexion = (config: MySqlConnectionConfig) => connexion = knex({ client: 'mysql', connection: config })
@@ -23,16 +27,18 @@ export class Config {
     config = () => this._config
     isProd = () => this.config().production
     mysqlConfig = (): MySqlConnectionConfig => this.config().mysqlConfig
+    criticalCode = () => this.config().criticalCode
     migrationDir = () => this.historyDir() + '/migrations'
+
+    isCriticalConfirmationEnabled = () => this.config().enableCriticalConfirmation
+
     historyDir = () => {
         if (this.config().historyDir !== ''){
             if (!fs.existsSync(this.config().historyDir))
                 fs.mkdirSync(this.config().historyDir)
             return this.config().historyDir
-        } else {
+        } else 
             throw new Error("You need to specify a history path directory before using automatic migration.")
-        }
-        
     }
 
     migrationConfig = () => {
@@ -52,10 +58,16 @@ export class Config {
         return connexion  as knex<any, unknown[]>
     }
 
+    enableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: true})
+    disableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: false})
+
+    setCriticalCode = (code: string) => {
+        this._config = Object.assign({}, this.config(), {criticalCode: code})
+    }
+
     set = ( config: any ) => {
-        if (!_.isEqual(config.mysqlConfig, this.mysqlConfig()) && !!config.mysqlConfig){
+        if (!_.isEqual(config.mysqlConfig, this.mysqlConfig()) && !!config.mysqlConfig)
             this._makeConnexion(config.mysqlConfig)
-        }
         this._config = Object.assign({}, this.config(), config)
     }
 
