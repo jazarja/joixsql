@@ -11,20 +11,23 @@ import { IUpdated, ITemplate, TColumn } from './src/migration-engine/template/ty
 
 import MigrationManager from './src/migration-engine'
 import TableEngine from './src/table-engine'
+import Ecosystem from './src/ecosystem'
 import config from './src/config'
 
 export default {
     JoiMySQL,
     TableEngine,
     config,
-    MigrationManager
+    MigrationManager,
+    Ecosystem
 }
 
 export { 
     JoiMySQL,
     TableEngine,
     config,
-    MigrationManager
+    MigrationManager,
+    Ecosystem
 }
 
 export {

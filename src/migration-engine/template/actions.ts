@@ -102,7 +102,10 @@ const any = () => {
         clear: (col: TColumn) => clearMethods(col, methods),
         unsigned: (prefix: string) => prefix + `.${methods.unsigned}()`,
         integer: (prefix: string, key: string) => prefix + `.${methods.integer}('${key}')`,
-        defaultTo: (prefix: string, value: string) => prefix + `.${methods.defaultTo}('${value}')`,
+        defaultTo: (prefix: string, value: string, isStringValue: boolean = false) =>{
+            const v = isStringValue ? `'${value}'` : value
+            return prefix + `.${methods.defaultTo}(${v})`  
+        }
     }
 }
 

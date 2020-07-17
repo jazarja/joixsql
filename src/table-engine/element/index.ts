@@ -2,7 +2,7 @@ import _ from 'lodash'
 import knex from 'knex'
 
 import Is from './is'
-import Get from './get'
+import Get, { IFloatPrecision } from './get'
 
 import { 
     DEFAULT_SQL_TYPES,
@@ -148,9 +148,10 @@ export default class Element {
 
     public parseNumber = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
 
-        if (this.is().float() || this.is().precisionSet()){
-            columnSTR.string += `.float('${this.key()}', ${this.get().precision() ? this.get().precision() : '8'}, 2)`
-            return column.float(this.key(), this.get().precision() | 8, 2)
+        if (this.is().float()){
+            const floatPrecision = this.get().floatPrecision() as IFloatPrecision
+            columnSTR.string += `.float('${this.key()}', ${floatPrecision.precision}, ${floatPrecision.scale})`
+            return column.float(this.key(), floatPrecision.precision, floatPrecision.scale)
         }
         if (this.is().double()){
             columnSTR.string += `.specificType('${this.key()}', 'DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}')`
@@ -206,8 +207,13 @@ export default class Element {
         else {
             const max = this.get().stringLengthByType()
             if (max > MYSQL_STRING_TYPES[0].max || max == -1){
-                columnSTR.string += `.text('${this.key()}', ${max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`)})`
-                return column.text(this.key(), max == -1 ? 'text' : (max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`))
+                if (max === -1){
+                    columnSTR.string += `.text('${this.key()}')`
+                    return column.text(this.key())
+                } else {
+                    columnSTR.string += `.text('${this.key()}', ${max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`})`
+                    return column.text(this.key(), max > MYSQL_STRING_TYPES[1].max ? `'longtext'` : `'mediumtext'`)
+                }
             }
             else {
                 columnSTR.string += `.string('${this.key()}', ${max})`

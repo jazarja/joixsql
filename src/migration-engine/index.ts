@@ -94,7 +94,7 @@ export class Manager {
                 printMigrationMessage()
                 log('Migration begin 🎬')
                 try {
-                    await this.migration().migrateAll(migrations.map((m: IMigration) => m.table))
+                    await this.migration().migrateAll()
                     log(`Migration succeed in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
                 } catch (e){
                     log('Migration failed ❌')

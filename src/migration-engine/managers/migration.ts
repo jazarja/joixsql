@@ -22,15 +22,15 @@ export default (m: Manager) => {
                 .reverse()
     }
 
-    const migrate = async (table: string) => {
-        return await config.mysqlConnexion().migrate.latest({
+    const migrateUp = async (table: string) => {
+        return await config.mysqlConnexion().migrate.up({
             directory: path(table)
         })        
-    } 
+    }
 
-    const migrateAll = async (tables: string[]) => {
+    const migrateAll = async () => {
         return await config.mysqlConnexion().migrate.latest({
-            directory: tables.map((table) => path(table))
+            directory: m.schema().getAllTableName().map((table: string) => path(table))
         })
     }
 
@@ -54,7 +54,7 @@ export default (m: Manager) => {
 
     return { 
         get,
-        migrate, migrateAll,
+        migrateUp, migrateAll,
         removeLast, removeAll,
         path, create, getListFiles,
         updateMigrationFileContent 

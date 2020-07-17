@@ -76,9 +76,23 @@ export const pullFullMethodFromColumn = (method: string, column: TColumn, valueO
     const idxStart = column.indexOf(idxOfContent)
     if (idxStart == -1)
         return undefined
-    const idxEnd = column.indexOf(')', idxStart) 
+    let i = idxStart
+    let countParenthesis = 0
+    while (i < column.length){
+        if (column[i] === ')'){
+            countParenthesis--
+            if (countParenthesis == 0)
+                break;
+        }
+        if (column[i] === '(')
+            countParenthesis++
+        i++;
+    }
+
+    const idxEnd = i
     return column.substring(idxStart + (valueOnly ? idxOfContent.length : 0), idxEnd + (valueOnly ? 0 : 1))
 }
+
 
 export const removeMethodFromColumn = (column: TColumn, method: string) => {
     let isCuttingTilEnd = true

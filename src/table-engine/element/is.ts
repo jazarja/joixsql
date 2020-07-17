@@ -33,7 +33,7 @@ export default class Is {
     noPopulate = () => this.flagExist() && this.flags().noPopulate === true || false
     deleteCascade = () => this.foreignKey() && this.flags().delete_cascade
     updateCascade = () => this.foreignKey() && this.flags().update_cascade
-    float = () => this.flagExist() && this.flags().float === true
+    float = () => this.flagExist() && !!this.flags().float
     double = () => this.flagExist() && this.flags().double === true
     dateFormatSet = () => this.flagExist() && !!this.flags().format
     dateUnix = () => this.dateFormatSet() && this.flags().format === 'unix'

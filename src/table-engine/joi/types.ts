@@ -19,7 +19,7 @@ export interface JoiSQLNumberSchema extends NumberSchema {
     noPopulate(): this;
     deleteCascade(): this;
     updateCascade(): this;
-    float(): this;
+    float(precision: number, scale: number): this;
     double(): this;
     group(ids: string[]): this;
 }

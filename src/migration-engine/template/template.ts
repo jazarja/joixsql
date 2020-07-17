@@ -15,11 +15,11 @@ export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObj
     for (let i = 0; i < Math.max(templateUp.length, templateDown.length); i++){
         ret.push(`
             exports.up = function(knex) {
-                ${templateUp[i] ? templateUp[i] : emptyTemplate}
+                ${templateUp[i] ? templateUp[i] : ''}
             };
 
             exports.down = function(knex) {
-                ${templateDown[i] ? templateDown[i] : emptyTemplate}
+                ${templateDown[i] ? templateDown[i] : ''}
             };
         `)
     }
@@ -179,7 +179,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
                 if (changed.defaultValue()){
                     const defVal = sqlInfo(nextCol).pullDefaultTo()
                     if (defVal != undefined)
-                        ret = actions.any().defaultTo(ret, defVal)
+                        ret = actions.any().defaultTo(ret, defVal, !sqlInfo(nextCol).isDate())
                 }
 
                 if (changed.nullableStatus()){

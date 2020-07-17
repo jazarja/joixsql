@@ -2,6 +2,11 @@ import Element from '.'
 import Is from './is'
 import _ from 'lodash'
 
+export interface IFloatPrecision {
+    precision: number
+    scale: number
+}
+
 export default class Get {
 
     private _is: Is
@@ -23,6 +28,8 @@ export default class Get {
     foreignKey = (): Array<any[3]> => this.is().foreignKey() ? this.flags().foreign_key : undefined
     populate = (): Array<any[3]> => this.is().populate() ? this.flags().populate : undefined
     group = (): string[] => this.is().group() ? this.flags().group : undefined
+
+    floatPrecision = (): IFloatPrecision | undefined => this.is().float() ? this.flags().float : undefined
 
     max = () => this.is().maxSet() ? _.find(this.rules(), {name: 'max'}).args.limit : undefined
     greater = () => this.is().greaterSet() ? _.find(this.rules(), {name: 'greater'}).args?.limit : undefined

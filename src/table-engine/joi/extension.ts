@@ -75,6 +75,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                 delete_cascade: { default: false },
                 update_cascade: { default: false },
                 group: { default: null },
+                float_precision: {default: null},
             },
             rules: {
                 unique: {
@@ -122,8 +123,8 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     },
                 },
                 float: {
-                    method() {
-                        return this.$_setFlag('float', true);
+                    method(precision: number, scale: number) {
+                        return this.$_setFlag('float', {precision, scale});
                     }
                 },
                 double: {

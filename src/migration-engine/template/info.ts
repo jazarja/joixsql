@@ -54,14 +54,17 @@ export default (column: TColumn) => {
 
     const pullDefaultTo = () => {
         const defVal = pullFullMethodFromColumn('defaultTo', column, true)
-        if (!defVal){
+        if (!defVal)
             return undefined
+        if (defVal[0] === '\'' && defVal[defVal.length - 1] === '\''){
+            return defVal.substring(1, defVal.length - 1)
         }
-        return defVal.substring(1, defVal.length - 1)
+        return defVal
     }
 
     const isUnique = () => !!pullFullMethodFromColumn('unique', column)
     const isNotNullable = () => !!pullFullMethodFromColumn('notNullable', column)
+    const isDate = () => type() === 'timestamp' || type() === 'dateTime'
 
     const isUnsigned = () => !!pullFullMethodFromColumn('unsigned', column)
     const isDeepUnsigned = () => {
@@ -90,6 +93,7 @@ export default (column: TColumn) => {
         type,
         isDeepUnsigned,
         isUnsigned,
+        isDate,
         isUnique,
         isNotNullable,
         pullDefaultTo,
