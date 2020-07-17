@@ -10,14 +10,16 @@ export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObj
     const templateUp = renderTemplates(oldTable, newTable, tableName)
     const templateDown = renderTemplates(newTable, oldTable, tableName)
 
+    const emptyTemplate = `return Promise.all([])`
+
     for (let i = 0; i < Math.max(templateUp.length, templateDown.length); i++){
         ret.push(`
             exports.up = function(knex) {
-                ${templateUp[i] ? templateUp[i] : ''}
+                ${templateUp[i] ? templateUp[i] : emptyTemplate}
             };
 
             exports.down = function(knex) {
-                ${templateDown[i] ? templateDown[i] : ''}
+                ${templateDown[i] ? templateDown[i] : emptyTemplate}
             };
         `)
     }

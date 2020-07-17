@@ -40,7 +40,7 @@ const primary = () => {
         //setters
         set: (key: string, autoIncrement: boolean) => autoIncrement ? setPrimaryWithIncrement(key) : setPrimary(key),
         add:  (prefix: string) => prefix + `.${methods.set}()`,
-        setIncrement: (tableName: string, column: string) => `knex.raw(\`ALTER TABLE ${tableName} CHANGE ${sqlInfo(column).key()} ${sqlInfo(column).key()} INT(11) ${sqlInfo(column).isDeepUnsigned() ? 'UNSIGNED' : ''} NOT NULL AUTO_INCREMENT\`),\n`,
+        setIncrement: (tableName: string, column: string) => `knex.raw(\`ALTER TABLE ${tableName} CHANGE ${sqlInfo(column).key()} ${sqlInfo(column).key()} INT(11) UNSIGNED NOT NULL AUTO_INCREMENT\`),\n`,
         
         //droppers
         drop: (key: string, autoIncrement: boolean, column: string) => `${autoIncrement ? dropAutoIncrement(key, column) : ''}t.${methods.drop}('${key}');\n`,
