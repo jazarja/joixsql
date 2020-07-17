@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Element from './element'
+import Element from '.'
 
 export default class Is {
     private _element: Element

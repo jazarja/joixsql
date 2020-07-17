@@ -1,5 +1,5 @@
 import { Root } from '@hapi/joi'
-import { JoiSQLRoot } from './joi-types'
+import { JoiSQLRoot } from './types'
 
 export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
 

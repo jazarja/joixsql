@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import fs from 'fs'
-import { Manager } from './index'
+import { Manager } from '../index'
 import config from '../../config'
 import { tableToJSON, compare } from '../template/parse' 
 import { IMigration } from '../template/types'
-import TableMaker from '../../table-engine'
+import { TableEngine } from '../../../index'
 
 export default (m: Manager) => {
 
@@ -45,7 +45,7 @@ export default (m: Manager) => {
         const last = lastSavedContent(mig.table)
         if (last == null)
             return true
-        const tableString = new TableMaker(mig.schema, { mysqlConfig: config.mysqlConfig() }).tableString(mig.table)
+        const tableString = TableEngine.buildTableString(mig.schema, mig.table)
         return !_.isEqual(last, tableToJSON(tableString))
     }
 
@@ -78,7 +78,7 @@ export default (m: Manager) => {
         list.length > 0 && fs.unlinkSync(list[0])
     }
 
-    const toTableString = (mig: IMigration) => new TableMaker(mig.schema, { mysqlConfig: config.mysqlConfig() }).tableString(mig.table)
+    const toTableString = (mig: IMigration) => TableEngine.buildTableString(mig.schema, mig.table)
 
     return {
         changes,

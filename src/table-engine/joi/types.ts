@@ -1,4 +1,4 @@
-import Joi, { Root, StringSchema, DateSchema, NumberSchema, BooleanSchema } from '@hapi/joi'
+import  { Root, StringSchema, DateSchema, NumberSchema, BooleanSchema } from '@hapi/joi'
 
 export interface JoiSQLStringSchema extends StringSchema {
     unique(): this;

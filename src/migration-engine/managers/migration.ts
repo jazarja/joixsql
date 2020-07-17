@@ -1,11 +1,10 @@
 import fs from 'fs'
 import config from '../../config'
-import { Manager } from './'
+import { Manager } from '../index'
 import { renderFullTemplate } from '../template/template'
 import { IMigration } from '../template/types'
 import { tableToJSON } from '../template/parse'
 var beautify = require('js-beautify').js
-
 
 export default (m: Manager) => {
     

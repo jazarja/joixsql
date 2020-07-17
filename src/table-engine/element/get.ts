@@ -1,4 +1,4 @@
-import Element from './element'
+import Element from '.'
 import Is from './is'
 import _ from 'lodash'
 

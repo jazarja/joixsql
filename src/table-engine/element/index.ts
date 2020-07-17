@@ -8,7 +8,7 @@ import {
     DEFAULT_SQL_TYPES,
     MYSQL_NUMBER_TYPES,
     MYSQL_STRING_TYPES
-} from '../mysql-types'
+} from '../mysql/types'
 
 export default class Element {
     private _element: any
@@ -76,6 +76,51 @@ export default class Element {
             columnSTR.string += `.onUpdate('CASCADE')`
         }
     }
+
+    public errorScanner = () => {
+        //primary key
+        if (this.is().primaryKey()){
+            if (this.is().foreignKey())
+                throw new Error("Your schema can't contain a value that is a primary key and a foreign key")
+        }
+    
+        if (this.is().string()){
+            if (!this.is().enum() && this.is().defaultValue() && !this.is().maxSizeSet()){
+                throw new Error("A TEXT can't have a default value, you need to set a column size")
+            }
+        }
+    
+        if (this.is().enum() && this.is().defaultValue()){
+            const defaultValue = this.get().defaultValue()
+            const allows = this.get().allow()
+            if (allows.indexOf(defaultValue) == -1){
+                throw new Error("Enum's default value can't be different than the values.")
+            }
+        }
+    
+        if (this.is().string()){
+            const max = this.is().maxSet() ? this.get().max() : this.get().stringLengthByType()
+            if ((max > MYSQL_STRING_TYPES[0].max || max == -1) && this.is().unique()){
+                throw new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")                
+            }
+        }
+    
+        if (this.is().defaultValue() && this.is().date()){
+            const defaultValue = this.get().defaultValue()
+            if (!this.is().dateUnix()){
+                if (defaultValue != 'now'){
+                    throw new Error(`Default on non-unix date can only be 'now' in this version. key:${this.key()}`)
+                }
+            }
+        }
+    
+        //only unix allowed on date format
+        if (this.is().dateFormatSet() && !this.is().dateUnix()){
+            throw new Error("only unix format is supported")
+        }
+        return this
+    }
+
 
     public parse = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
         const typeParses: any = {

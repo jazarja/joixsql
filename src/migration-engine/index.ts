@@ -1,13 +1,13 @@
 
 import _ from 'lodash'
-import schema from './schema'
-import migration from './migration'
-import confirmation from './confirmation'
+import schema from './managers/schema'
+import migration from './managers/migration'
+import confirmation from './managers/confirmation'
 
-import config from '../../config'
+import config from '../config'
 
-import { IMigration, IUpdated } from '../template/types'
-import { Color } from './utils'
+import { IMigration, IUpdated } from './template/types'
+import { Color } from './managers/utils'
 
 export class Manager {
     
@@ -15,14 +15,14 @@ export class Manager {
     migration = () => migration(this)
     confirmation = () => confirmation()
 
-    removeAll = (name: string) => {
-        this.schema().removeAll(name)
-        this.migration().removeAll(name)
+    removeAllHistory = (tableName: string) => {
+        this.schema().removeAll(tableName)
+        this.migration().removeAll(tableName)
     }
 
-    removeLast = (name: string) => {
-        this.schema().removeLast(name)
-        this.migration().removeLast(name)
+    removeLastHistory = (tableName: string) => {
+        this.schema().removeLast(tableName)
+        this.migration().removeLast(tableName)
     }
 
     smartMigration = async (migrations: IMigration[]) => {
