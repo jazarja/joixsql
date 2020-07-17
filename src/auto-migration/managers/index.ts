@@ -5,41 +5,9 @@ import migration from './migration'
 import confirmation from './confirmation'
 
 import config from '../../config'
-import TableMaker from '../../table-engine'
 
-import { getChanges } from '../changes'
-import { tableToJSON, getTableAnalyzation, jsonToAnalyzation } from '../parse' 
-import { migrationTemplate } from '../templates'
-
-import { IMigration, IChange, IRenamed } from '../types'
-
-const Color = {
-    Reset: "\x1b[0m",
-    Bright: "\x1b[1m",
-    Dim: "\x1b[2m",
-    Underscore: "\x1b[4m",
-    Blink: "\x1b[5m",
-    Reverse: "\x1b[7m",
-    Hidden: "\x1b[8m",
-  
-    FgBlack: "\x1b[30m",
-    FgRed: "\x1b[31m",
-    FgGreen: "\x1b[32m",
-    FgYellow: "\x1b[33m",
-    FgBlue: "\x1b[34m",
-    FgMagenta: "\x1b[35m",
-    FgCyan: "\x1b[36m",
-    FgWhite: "\x1b[37m",
-  
-    BgBlack: "\x1b[40m",
-    BgRed: "\x1b[41m",
-    BgGreen: "\x1b[42m",
-    BgYellow: "\x1b[43m",
-    BgBlue: "\x1b[44m",
-    BgMagenta: "\x1b[45m",
-    BgCyan: "\x1b[46m",
-    BgWhite: "\x1b[47m"
-  }
+import { IMigration, IUpdated } from '../template/types'
+import { Color } from './utils'
 
 export class Manager {
     
@@ -57,40 +25,22 @@ export class Manager {
         this.migration().removeLast(name)
     }
 
-    hasTableChanged = (m: IMigration) => {
-        const last = this.schema().lastSavedContent(m.table)
-        if (last == null)
-            return true
-        const tableString = new TableMaker(m.schema, { mysqlConfig: config.mysqlConfig() }).tableString(m.table)
-        return !_.isEqual(last, tableToJSON(tableString))
-    }
-
-    tableString = (m: IMigration) => new TableMaker(m.schema, { mysqlConfig: config.mysqlConfig() }).tableString(m.table)
-
-    getChanges = (m: IMigration) => {
-        if (this.hasTableChanged(m) && this.schema().lastFilename(m.table)){
-            const oldTable = jsonToAnalyzation(this.schema().lastSavedContent(m.table))
-            const newTable = getTableAnalyzation(this.tableString(m))
-            return getChanges(oldTable, newTable)
-        }
-        return null
-    }
-
     smartMigration = async (migrations: IMigration[]) => {
         const dels: any = {}
         const upds: any = {}
         const adds: any = {}
         const rens: any = {}
-        const tablesUpdated: string[] = []
 
-        const fillChanges = (d: any, changes: IChange[], table: string) => {
-            if (changes.length > 0)
-                d[table] = changes.map((e) => e.info.key)
+        const log = (...msg: any) => config.isLogEnabled() && console.log(...msg)
+
+        const fillChanges = (d: any, changes: any, table: string) => {
+            if (_.size(changes) > 0)
+                d[table] = Object.keys(changes)
         }
 
-        const fillRenamed = (d: any, renamed: IRenamed[], table: string) => {
+        const fillRenamed = (d: any, renamed: IUpdated[], table: string) => {
             if (renamed.length > 0)
-                d[table] = renamed.map((e) => [e.before, e.after])
+                d[table] = renamed.map((e) => [e.old, e.new])
         }
 
         const listTableUpdated = () => _.uniq(Object.keys(dels).concat(Object.keys(upds)).concat(Object.keys(adds)).concat(Object.keys(rens)))
@@ -106,7 +56,7 @@ export class Manager {
                 if (!!rens[table]) msg += `   | ${Color.FgCyan}rename${Color.Reset}: ${rens[table].map((e: any) => e.map((v: string) => `${Color.Dim}${v}${Color.Reset}`).join(' -> ')).join(' ; ')}\n`
                 msg += '\n'        
             }
-            console.log(msg)
+            log(msg)
         }
           
         const printCriticalConfirmationMessage = () => {
@@ -116,7 +66,7 @@ export class Manager {
                 msg += `   - In table ${Color.Underscore}${key}${Color.Reset}, column${dels[key].length > 1 ? 's' : ''}: ${dels[key].map((v: string) => `${Color.FgYellow}${v}${Color.Reset}`).join(', ') }.\n`
             msg += `\nTo confirm the ${Color.FgRed}deletion${Color.Reset} of these column please set the following code through the method ${Color.FgGreen}setCriticalCode${Color.Reset} in your Configuration Manager, and re-run again the program.\n\n`
             msg += `Your code is ${Color.FgGreen}${d.code}${Color.Reset}, it has a validy time of ${Color.Bright}10 minutes${Color.Reset}.\n\n`
-            console.log(msg)
+            log(msg)
         }
 
         const isMigrationAllowed = () => {
@@ -142,13 +92,16 @@ export class Manager {
             if (isMigrationAllowed()){
                 const startTime = new Date().getTime()
                 printMigrationMessage()
-                console.log('Migration begin 🎬')
+                log('Migration begin 🎬')
                 try {
                     await this.migration().migrateAll(migrations.map((m: IMigration) => m.table))
-                    console.log(`Migration succeed in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
+                    log(`Migration succeed in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
                 } catch (e){
-                    console.log('Migration failed ❌')
-                    console.log('error:', e)
+                    log('Migration failed ❌')
+                    log('error:', e)
+                    if (!config.isLogEnabled()){
+                        throw new Error(e)
+                    }
                 }
             } else if (isMigrationNeedsConfirmation()) {
                 printCriticalConfirmationMessage()
@@ -158,29 +111,26 @@ export class Manager {
 
         for (let i = 0; i < migrations.length; i++){
             const m = migrations[i]
-            const changes = this.getChanges(m)
+            const changes = this.schema().changes(m)
             if (changes != null){
                 fillChanges(dels, changes.deleted, m.table)
                 fillChanges(upds, changes.updated, m.table)
                 fillChanges(adds, changes.added, m.table)
                 fillRenamed(rens, changes.renamed, m.table)
-                tablesUpdated.push(m.table)
-                await this.generateTemplatesWithoutMigration(m)
+                await this.generateTemplateWithoutMigration(m)
             }
         }
         await migrateAll()
     }
 
-    getMigrationTemplates = (m: IMigration) => this.migration().get(m).map((r) => migrationTemplate(r, m.table) )
-
-    generateTemplatesWithoutMigration = async (m: IMigration) => {
+    generateTemplateWithoutMigration = async (m: IMigration) => {
         let i = 0;
-        for (let template of this.getMigrationTemplates(m)){
+        for (let template of this.migration().get(m)){
             try {
-                if (i == 1)
+                if (i > 0)
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 const filename = await this.migration().create(m.table)
-                this.migration().upateMigrationFileContent(filename, template)
+                this.migration().updateMigrationFileContent(filename, template)
             } catch (e){
                 throw new Error(e)
             }

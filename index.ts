@@ -7,31 +7,28 @@ import {
     JoiSQLRoot
 } from './src/joi-types'
 import { IAnalyze, IRef, IForeign, IPopulate } from './src/table-engine/types'
-import { IChange, IFullColumn, IInfo, IRenamed, ITemplate, TColumn } from './src/auto-migration/types'
+import { IUpdated, ITemplate, TColumn } from './src/auto-migration/template/types'
 
+import MigrationManager from './src/auto-migration/managers'
 import TableMakerEngine from './src/table-engine'
 import config from './src/config'
-import MigrationManager from './src/auto-migration'
 
 export default {
     JoiMySQL,
     TableMakerEngine,
-    MigrationManager,
-    config
+    config,
+    MigrationManager
 }
 
 export { 
     JoiMySQL,
     TableMakerEngine,
-    MigrationManager,
-    config
+    config,
+    MigrationManager
 }
 
 export {
-    IChange,
-    IFullColumn,
-    IInfo,
-    IRenamed,
+    IUpdated,
     ITemplate,
     TColumn
 }

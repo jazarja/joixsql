@@ -10,6 +10,7 @@ interface IConfig {
     production: boolean
     criticalCode: string | null
     enableCriticalConfirmation: boolean
+    enableLog: boolean
 }
 
 export class Config {
@@ -19,6 +20,7 @@ export class Config {
         historyDir: '',
         production: false,
         criticalCode: null,
+        enableLog: true,
         enableCriticalConfirmation: true
     }
 
@@ -31,6 +33,7 @@ export class Config {
     migrationDir = () => this.historyDir() + '/migrations'
 
     isCriticalConfirmationEnabled = () => this.config().enableCriticalConfirmation
+    isLogEnabled = () => this.config().enableLog
 
     historyDir = () => {
         if (this.config().historyDir !== ''){
@@ -60,6 +63,9 @@ export class Config {
 
     enableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: true})
     disableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: false})
+
+    enableLog = () =>  this._config = Object.assign({}, this.config(), {enableLog: true})
+    disableLog = () =>  this._config = Object.assign({}, this.config(), {enableLog: false})
 
     setCriticalCode = (code: string) => {
         this._config = Object.assign({}, this.config(), {criticalCode: code})
