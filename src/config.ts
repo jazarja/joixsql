@@ -1,6 +1,7 @@
 import fs from 'fs'
 import _ from 'lodash'
 import knex, {MySqlConnectionConfig} from 'knex'
+import Ecosystem from './ecosystem'
 
 let connexion: any = null
 
@@ -10,7 +11,8 @@ interface IConfig {
     production: boolean
     criticalCode: string | null
     enableCriticalConfirmation: boolean
-    enableLog: boolean
+    enableLog: boolean,
+    ecosystem: Ecosystem | null
 }
 
 export class Config {
@@ -21,7 +23,8 @@ export class Config {
         production: false,
         criticalCode: null,
         enableLog: true,
-        enableCriticalConfirmation: true
+        enableCriticalConfirmation: true,
+        ecosystem: null
     }
 
     private _makeConnexion = (config: MySqlConnectionConfig) => connexion = knex({ client: 'mysql', connection: config })
@@ -31,9 +34,11 @@ export class Config {
     mysqlConfig = (): MySqlConnectionConfig => this.config().mysqlConfig
     criticalCode = () => this.config().criticalCode
     migrationDir = () => this.historyDir() + '/migrations'
+    ecosystem = () => this.config().ecosystem
 
     isCriticalConfirmationEnabled = () => this.config().enableCriticalConfirmation
     isLogEnabled = () => this.config().enableLog
+    hasEcosystem = () => this.ecosystem() != null
 
     historyDir = () => {
         if (this.config().historyDir !== ''){
@@ -61,16 +66,16 @@ export class Config {
         return connexion  as knex<any, unknown[]>
     }
 
-    enableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: true})
-    disableCriticalConfirmation = () => this._config = Object.assign({}, this.config(), {enableCriticalConfirmation: false})
+    setEcoystem = (ecosystem: Ecosystem) => this.set({ ecosystem })
+    removeEcosystem = () => this.set({ecosystem: null})
 
-    enableLog = () =>  this._config = Object.assign({}, this.config(), {enableLog: true})
-    disableLog = () =>  this._config = Object.assign({}, this.config(), {enableLog: false})
+    enableCriticalConfirmation = () => this.set({enableCriticalConfirmation: true})
+    disableCriticalConfirmation = () => this.set({enableCriticalConfirmation: false}) 
 
-    setCriticalCode = (code: string) => {
-        this._config = Object.assign({}, this.config(), {criticalCode: code})
-    }
+    enableLog = () => this.set({enableLog: true})
+    disableLog = () => this.set({enableLog: false})
 
+    setCriticalCode = (code: string) => this.set({criticalCode: code})
     set = ( config: any ) => {
         if (!_.isEqual(config.mysqlConfig, this.mysqlConfig()) && !!config.mysqlConfig)
             this._makeConnexion(config.mysqlConfig)

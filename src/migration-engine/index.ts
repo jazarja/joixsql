@@ -3,6 +3,7 @@ import _ from 'lodash'
 import schema from './managers/schema'
 import migration from './managers/migration'
 import confirmation from './managers/confirmation'
+import errors from './managers/errors'
 
 import config from '../config'
 
@@ -13,6 +14,7 @@ export class Manager {
     
     schema = () => schema(this)
     migration = () => migration(this)
+    errors = () => errors()
     confirmation = () => confirmation()
 
     removeAllHistory = (tableName: string) => {

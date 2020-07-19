@@ -10,20 +10,24 @@ import {
     MYSQL_STRING_TYPES
 } from '../mysql/types'
 
+import config from '../../config'
+
 export default class Element {
     private _element: any
     private _is: Is
     private _key: string
     private _get: Get
-    private _knexCO: knex
+    private _isFromRefKind: boolean = false
 
-    constructor(element: any, key: string, knexCO: knex){
+    constructor(element: any, key: string){
         this._element = element
         this._key = key
-        this._knexCO = knexCO
         this._is = new Is(this)
         this._get = new Get(this)
     }
+
+    public isFromRefKind = () => this._isFromRefKind
+    public setAsFromRefKind = () => this._isFromRefKind = true
 
     public element = () => this._element
     public flags = () => this.element().flags
@@ -34,7 +38,6 @@ export default class Element {
 
     public is = () => this._is
     public get = () => this._get
-    public knex = (): knex => this._knexCO
 
     public addColumnOptions = (column: knex.ColumnBuilder, columnSTR: any) => {
      
@@ -57,7 +60,7 @@ export default class Element {
 
             if (this.is().date() && initialDefaultValue === 'now'){
                 columnSTR.string += `.defaultTo(${initialDefaultValue === 'now' ? (this.is().dateUnix() ? `knex.fn.now()` : `knex.raw('now()')`) : `'${initialDefaultValue}'`})`
-                defaultValue = this.is().dateUnix() ? this.knex().fn.now() : this.knex().raw(`now()`)
+                defaultValue = this.is().dateUnix() ? config.mysqlConnexion().fn.now() : config.mysqlConnexion().raw(`now()`)
             } else {
                 columnSTR.string += `.defaultTo('${defaultValue}')`
             }

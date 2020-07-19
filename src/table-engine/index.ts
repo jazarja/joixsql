@@ -25,7 +25,7 @@ export const analyzeSchema = (schema: Schema): IAnalyze => {
 
     const described = schema.describe().keys
     for (const key in described){
-        const elemOrigin = new Element(described[key], key, {} as knex)
+        const elemOrigin = new Element(described[key], key)
         const elem = parseSupportedTypes(schema, elemOrigin).errorScanner()
 
         ret.all_keys.push(key)
@@ -100,7 +100,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
 
     config.mysqlConnexion().schema.createTable(tableName, (table: knex.TableBuilder) => {
         for (const key in described){
-            const elem = parseSupportedTypes(schema, new Element(described[key], key, config.mysqlConnexion())).errorScanner()
+            const elem = parseSupportedTypes(schema, new Element(described[key], key)).errorScanner()
 
             let col: any
             columnSTR.string += `   t`
@@ -125,7 +125,7 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     
     return config.mysqlConnexion().schema.createTable(tableName, (table: knex.TableBuilder) => {
         for (const key in described){
-            const elem = parseSupportedTypes(schema, new Element(described[key], key, config.mysqlConnexion())).errorScanner()
+            const elem = parseSupportedTypes(schema, new Element(described[key], key)).errorScanner()
             
             let col: any
             if (elem.is().increment()){
