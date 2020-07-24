@@ -3,6 +3,7 @@ import knex from 'knex'
 
 import Is from './is'
 import Get, { IFloatPrecision } from './get'
+import { toValidMySQLDateString } from './utils'
 
 import { 
     DEFAULT_SQL_TYPES,
@@ -58,14 +59,20 @@ export default class Element {
             const initialDefaultValue = this.get().defaultValue()
             let defaultValue = initialDefaultValue
 
+            if (this.is().date() && !this.is().dateUnix() && initialDefaultValue !== 'now'){
+                defaultValue = toValidMySQLDateString(new Date(defaultValue))
+            }
+
             if (this.is().date() && initialDefaultValue === 'now'){
                 columnSTR.string += `.defaultTo(${initialDefaultValue === 'now' ? (this.is().dateUnix() ? `knex.fn.now()` : `knex.raw('now()')`) : `'${initialDefaultValue}'`})`
                 defaultValue = this.is().dateUnix() ? config.mysqlConnexion().fn.now() : config.mysqlConnexion().raw(`now()`)
             } else {
                 columnSTR.string += `.defaultTo('${defaultValue}')`
             }
+            
             column = column.defaultTo(defaultValue)
         }
+
         if (this.is().required() && !this.is().primaryKey()){
             column = column.notNullable()
             columnSTR.string += `.notNullable()`
@@ -92,28 +99,23 @@ export default class Element {
                 throw new Error("A TEXT can't have a default value, you need to set a column size")
             }
         }
-    
-        if (this.is().enum() && this.is().defaultValue()){
-            const defaultValue = this.get().defaultValue()
-            const allows = this.get().allow()
-            if (allows.indexOf(defaultValue) == -1){
-                throw new Error("Enum's default value can't be different than the values.")
+
+        if (this.is().defaultValue()){
+
+            if (this.is().enum()){
+                const defaultValue = this.get().defaultValue()
+                const allows = this.get().allow()
+                if (allows.indexOf(defaultValue) == -1){
+                    throw new Error("Enum's default value can't be different than the values.")
+                } 
             }
         }
     
+
         if (this.is().string()){
             const max = this.is().maxSet() ? this.get().max() : this.get().stringLengthByType()
             if ((max > MYSQL_STRING_TYPES[0].max || max == -1) && this.is().unique()){
                 throw new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")                
-            }
-        }
-    
-        if (this.is().defaultValue() && this.is().date()){
-            const defaultValue = this.get().defaultValue()
-            if (!this.is().dateUnix()){
-                if (defaultValue != 'now'){
-                    throw new Error(`Default on non-unix date can only be 'now' in this version. key:${this.key()}`)
-                }
             }
         }
     

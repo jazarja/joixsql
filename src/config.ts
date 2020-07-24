@@ -5,7 +5,7 @@ import Ecosystem from './ecosystem'
 
 let connexion: any = null
 
-interface IConfig {
+export interface IConfig {
     mysqlConfig: MySqlConnectionConfig
     historyDir: string
     production: boolean

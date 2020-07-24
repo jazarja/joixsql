@@ -221,9 +221,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
             }
         }
     });
-
-
     return JoiMySQL
 }
 
-export default JoiMySQL
+export default JoiMySQL(require('@hapi/joi'))

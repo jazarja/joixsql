@@ -2,11 +2,6 @@ import Joi from '@hapi/joi'
 
 export type TColumn = string
 
-export interface IMigration {
-    schema: Joi.Schema
-    table: string
-}
-
 export interface IUpdated {
     old: string
     new: string

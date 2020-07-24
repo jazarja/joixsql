@@ -1,11 +1,35 @@
 import _ from 'lodash'
 import Joi from "@hapi/joi";
 import TableEngine from './table-engine'
-import { IForeign } from './table-engine/types'
+import { IForeign, ITableEngine, IValidation, IPopulate, IAnalyze, TObjectAny, TObjectArrayString, IRef } from './table-engine/types'
 
 export interface IModel {
     schema: Joi.Schema
     tableName: string
+}
+
+export interface ISchema {
+    engine(): ITableEngine
+    validate(value: any): IValidation
+    getPopulate(): IPopulate[]
+    cleanNonPresentValues(state: any): any
+    analyze(): IAnalyze
+    getAllKeys(): string[]
+    getGroups(): TObjectArrayString
+    getPrimaryKey(): string
+    getForeignKeys(): IForeign[]
+    getRefs(): IRef[]
+    defaults(): TObjectAny
+    ecosystemModel(): IModel
+}
+
+export interface IVerify {
+    all(): void
+    foreignKeyExistences(): void
+    populateExistences(): void
+    crossedForeignKey(): void
+    groupingValuesExistence(): void
+    crossedPopulatedValues(): void
 }
 
 export default class Ecosystem {
@@ -25,12 +49,12 @@ export default class Ecosystem {
 
     delete = (tableName: string) => _.remove(this.list(), {tableName})
 
-    schema = (m: IModel) => {
+    schema = (m: IModel): ISchema => {
         const { schema } = m
 
-        const engine = () => TableEngine
+        const engine = (): ITableEngine => TableEngine
 
-        const validate = (value: any) => {
+        const validate = (value: any): IValidation => {
             const ret = schema.validate(value)
             return {
                 error: ret.error ? ret.error.details[0].message : undefined,
@@ -80,11 +104,12 @@ export default class Ecosystem {
             getPrimaryKey: () => engine().analyzeSchema(schema).primary_key as string,
             getForeignKeys: () => engine().analyzeSchema(schema)?.foreign_keys,
             getRefs: () => engine().analyzeSchema(schema)?.refs,
-            defaults: () => engine().analyzeSchema(schema)?.defaults
+            defaults: () => engine().analyzeSchema(schema)?.defaults,
+            ecosystemModel: () => m
         }
     }
 
-    verify = (v: IModel) => {
+    verify = (v: IModel): IVerify => {
 
         const all = () => {
             foreignKeyExistences()
@@ -191,6 +216,5 @@ export default class Ecosystem {
             groupingValuesExistence,
             crossedForeignKey
         }
-
     }
  }

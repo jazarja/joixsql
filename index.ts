@@ -1,4 +1,4 @@
-import JoiMySQL from './src/table-engine/joi/extension'
+import Joi, {JoiMySQL as JoiMySQLExtension} from './src/table-engine/joi/extension'
 import { 
     JoiSQLStringSchema,
     JoiSQLNumberSchema,
@@ -11,32 +11,34 @@ import { IUpdated, ITemplate, TColumn } from './src/migration-engine/template/ty
 
 import MigrationManager from './src/migration-engine'
 import TableEngine from './src/table-engine'
-import Ecosystem from './src/ecosystem'
-import config from './src/config'
+import Ecosystem, { ISchema, IVerify } from './src/ecosystem'
+import config, { Config, IConfig} from './src/config'
 
 export default {
-    JoiMySQL,
+    JoiMySQLExtension,
+    Joi,
     TableEngine,
     config,
     MigrationManager,
-    Ecosystem
+    Ecosystem,
+    Config
 }
 
 export { 
-    JoiMySQL,
+    JoiMySQLExtension,
+    Joi,
     TableEngine,
     config,
     MigrationManager,
-    Ecosystem
+    Ecosystem,
+    Config
 }
+
 
 export {
     IUpdated,
     ITemplate,
-    TColumn
-}
-
-export {
+    TColumn,
     JoiSQLStringSchema,
     JoiSQLNumberSchema,
     JoiSQLDateSchema,
@@ -45,5 +47,8 @@ export {
     IAnalyze,
     IRef,
     IForeign,
-    IPopulate
+    IPopulate,
+    ISchema, 
+    IVerify,
+    IConfig
 }

@@ -7,7 +7,8 @@ import errors from './managers/errors'
 
 import config from '../config'
 
-import { IMigration, IUpdated } from './template/types'
+import { IUpdated } from './template/types'
+import { IModel } from '../ecosystem'
 import { Color } from './managers/utils'
 
 export class Manager {
@@ -27,7 +28,7 @@ export class Manager {
         this.migration().removeLast(tableName)
     }
 
-    smartMigration = async (migrations: IMigration[]) => {
+    smartMigration = async (migrations: IModel[]) => {
         const dels: any = {}
         const upds: any = {}
         const adds: any = {}
@@ -97,8 +98,13 @@ export class Manager {
                 log('Migration begin 🎬')
                 try {
                     await this.migration().migrateAll()
+                    for (let m of migrations)
+                        this.schema().create(m)
                     log(`Migration succeed in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
+
                 } catch (e){
+                    for (let m of migrations)
+                        this.migration().removeLast(m.tableName)
                     log('Migration failed ❌')
                     log('error:', e)
                     if (!config.isLogEnabled()){
@@ -115,30 +121,29 @@ export class Manager {
             const m = migrations[i]
             const changes = this.schema().changes(m)
             if (changes != null){
-                fillChanges(dels, changes.deleted, m.table)
-                fillChanges(upds, changes.updated, m.table)
-                fillChanges(adds, changes.added, m.table)
-                fillRenamed(rens, changes.renamed, m.table)
+                fillChanges(dels, changes.deleted, m.tableName)
+                fillChanges(upds, changes.updated, m.tableName)
+                fillChanges(adds, changes.added, m.tableName)
+                fillRenamed(rens, changes.renamed, m.tableName)
                 await this.generateTemplateWithoutMigration(m)
             }
         }
         await migrateAll()
     }
 
-    generateTemplateWithoutMigration = async (m: IMigration) => {
+    generateTemplateWithoutMigration = async (m: IModel) => {
         let i = 0;
         for (let template of this.migration().get(m)){
             try {
                 if (i > 0)
                     await new Promise(resolve => setTimeout(resolve, 1000));
-                const filename = await this.migration().create(m.table)
+                const filename = await this.migration().create(m.tableName)
                 this.migration().updateMigrationFileContent(filename, template)
             } catch (e){
                 throw new Error(e)
             }
             i++
         }
-        this.schema().create(m)
     }
 
 }

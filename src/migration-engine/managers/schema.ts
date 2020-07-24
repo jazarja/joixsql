@@ -3,14 +3,14 @@ import fs from 'fs'
 import { Manager } from '../index'
 import config from '../../config'
 import { tableToJSON, compare } from '../template/parse' 
-import { IMigration } from '../template/types'
+import { IModel } from '../../ecosystem'
 import { TableEngine } from '../../../index'
 
 export default (m: Manager) => {
 
-    const changes = (mig: IMigration) => {
-        if (hasChanged(mig) && lastFilename(mig.table)){
-            const oldTable = lastSavedContent(mig.table)
+    const changes = (mig: IModel) => {
+        if (hasChanged(mig) && lastFilename(mig.tableName)){
+            const oldTable = lastSavedContent(mig.tableName)
             const newTable = tableToJSON(toTableString(mig))
 
             return compare(oldTable, newTable)
@@ -18,10 +18,10 @@ export default (m: Manager) => {
         return null
     }
 
-    const create = (mig: IMigration) => {
+    const create = (mig: IModel) => {
         if (hasChanged(mig)){
             fs.writeFileSync(
-                generateFilename(mig.table), 
+                generateFilename(mig.tableName), 
                 JSON.stringify(
                     tableToJSON(toTableString(mig)), 
                     null, 
@@ -41,11 +41,11 @@ export default (m: Manager) => {
                 .reverse()
     }
 
-    const hasChanged = (mig: IMigration) => {
-        const last = lastSavedContent(mig.table)
+    const hasChanged = (mig: IModel) => {
+        const last = lastSavedContent(mig.tableName)
         if (last == null)
             return true
-        const tableString = TableEngine.buildTableString(mig.schema, mig.table)
+        const tableString = TableEngine.buildTableString(mig.schema, mig.tableName)
         return !_.isEqual(last, tableToJSON(tableString))
     }
 
@@ -78,7 +78,7 @@ export default (m: Manager) => {
         list.length > 0 && fs.unlinkSync(list[0])
     }
 
-    const toTableString = (mig: IMigration) => TableEngine.buildTableString(mig.schema, mig.table)
+    const toTableString = (mig: IModel) => TableEngine.buildTableString(mig.schema, mig.tableName)
 
     return {
         changes,

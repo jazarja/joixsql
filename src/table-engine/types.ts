@@ -1,11 +1,28 @@
+import { Schema } from '@hapi/joi'
+import { SchemaBuilder } from 'knex'
+
+interface ITableEngine {
+    analyzeSchema(schema: Schema): IAnalyze
+    buildTableString(schema: Schema, tableName: string): string
+    buildTable(schema: Schema, tableName: string): SchemaBuilder
+}
+
 interface IAnalyze {
     primary_key: string | null
     foreign_keys: Array<IForeign>
     populate: Array<IPopulate>
     all_keys: Array<string>
     refs: Array<IRef>
-    defaults: any
-    groups: any
+    defaults: TObjectAny
+    groups: TObjectArrayString
+}
+
+type TObjectArrayString = { [char: string]: string[] } 
+type TObjectAny = { [char: string]: any } 
+
+interface IValidation {
+    error: string | undefined
+    value: string
 }
 
 interface IRef {
@@ -35,6 +52,10 @@ interface IForeign {
 export {
     IAnalyze,
     IForeign,
+    IValidation,
     IRef,
-    IPopulate
+    IPopulate,
+    ITableEngine,
+    TObjectArrayString,
+    TObjectAny
 }

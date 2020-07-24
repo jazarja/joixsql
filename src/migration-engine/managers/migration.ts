@@ -2,7 +2,7 @@ import fs from 'fs'
 import config from '../../config'
 import { Manager } from '../index'
 import { renderFullTemplate } from '../template/template'
-import { IMigration } from '../template/types'
+import { IModel } from '../../ecosystem'
 import { tableToJSON } from '../template/parse'
 var beautify = require('js-beautify').js
 
@@ -10,15 +10,15 @@ export default (m: Manager) => {
     
     const create = async (name: string) => await config.mysqlConnexion().migrate.make(name, { directory: path(name) })
     
-    const get = (mig: IMigration) => {
-        const oldTable = m.schema().lastSavedContent(mig.table)
+    const get = (mig: IModel) => {
+        const oldTable = m.schema().lastSavedContent(mig.tableName)
         const newTable = tableToJSON(m.schema().toTableString(mig))
-        return renderFullTemplate(oldTable, newTable, mig.table)
+        return renderFullTemplate(oldTable, newTable, mig.tableName)
     }
 
     const getListFiles = (name: string) => {
         return fs.readdirSync(path(name), 'utf8')
-                .filter((e) => e.split('_')[0] === name)
+                // .filter((e) => e.split('_')[0] === name)
                 .reverse()
     }
 

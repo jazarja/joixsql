@@ -49,7 +49,6 @@ export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
             const [table, k] = elem.is().foreignKey() ? elem.get().foreignKey() : elem.get().populate()
             const m = ecosystem.getModel(table)
             if (m){
-                //assignSpecsToDescribeKey(m.schema.describe().keys[k])
                 return new Element(assignSpecsToDescribeKey(m.schema.describe().keys[k]), key)
             }
         }
