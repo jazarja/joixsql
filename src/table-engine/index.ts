@@ -216,28 +216,32 @@ const dropAllFromEcosystem = async () => {
     if (!ecosystem){
         throw new Error("No ecosystem set")
     }
-    const deleted: IModel[] = []
     
-    try {
-        await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=0;`)
-        const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
-            const queries = sortTableToCreate().map((tName: string) => {
-                const isCreated = MigrationManager.schema().lastFilename(tName) != null 
-                if (isCreated){
-                    deleted.push(ecosystem.getModel(tName) as IModel)
-                    return config.mysqlConnexion().schema.dropTableIfExists(tName)
-                }
-            })
-            return Promise.all(queries).then(trx.commit).catch(trx.rollback)
-        })        
-        for (let m of deleted)
-            MigrationManager.removeAllHistory(m.tableName)
-        return res
-    } catch (e){
-        throw new Error(e)
-    } finally {
-        await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=1;`)
+    const deleteAll = async () => {
+        const deleted: IModel[] = []
+        try {
+            await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=0;`)
+            const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+                const queries = sortTableToCreate().map((tName: string) => {
+                    const isCreated = MigrationManager.schema().lastFilename(tName) != null 
+                    if (isCreated){
+                        deleted.push(ecosystem.getModel(tName) as IModel)
+                        return config.mysqlConnexion().schema.dropTableIfExists(tName)
+                    }
+                })
+                return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+            })        
+            for (let m of deleted)
+                MigrationManager.removeAllHistory(m.tableName)
+            return res
+        } catch (e){
+            throw new Error(e)
+        } finally {
+            await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=1;`)
+        }
     }
+
+    await deleteAll()
 }
 
 const sortTableToCreate = () => {
