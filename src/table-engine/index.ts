@@ -4,7 +4,7 @@ import knex, { SchemaBuilder } from 'knex'
 import { config } from '../../index'
 import { IAnalyze, IForeign } from './types'
 import Element from './element'
-
+import { Color } from '../migration-engine/managers/utils'
 import {
     detectAndTriggerSchemaErrors,
     parseSupportedTypes
@@ -140,31 +140,76 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     })
 }
 
-const buildAllFromEcosystem = async () => {
-    if (!config.ecosystem()){
+export const buildAllFromEcosystem = async () => {
+    const created: IModel[] = []
+    const ecosystem = config.ecosystem()
+    if (!ecosystem)
         throw new Error("No ecosystem set")
+
+    const log = (...v: any) => config.isLogEnabled() && console.log(...v)
+
+    const getMessage = () => {
+        const olds: string[] = []
+        const news: string[] = []
+
+        for (let schema of ecosystem.list()){
+            const tName = schema.tableName
+            MigrationManager.schema().lastFilename(tName) === null ? news.push(tName) : olds.push(tName)
+        }
+        let msg = ''
+        if (news.length > 0){
+            msg += `${Color.Reset}${Color.FgGreen}+++${Color.Reset} We detected ${Color.FgWhite}MySQL table(s) add. ${Color.Reset}${Color.FgGreen}+++${Color.Reset}\n\n\n`
+            if (olds.length > 0) msg += `${Color.FgWhite}Existing${Color.Reset} table${olds.length > 1 ? 's' : ''}:\n\n`
+            for (const old of olds)
+                msg += `    - ${Color.FgWhite}${old}${Color.Reset}\n`
+            msg += `${olds.length > 0 ? `\n\n` : ``}${Color.FgGreen}New${Color.Reset} table${news.length > 1 ? 's' : ''}:\n\n`
+            for (const n of news)
+                msg += `    - ${Color.FgGreen}${n}${Color.Reset}\n`
+            msg += '\n\n'
+        }
+        return {news, msg}
     }
 
-    const created: IModel[] = []
-    try {
-        const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
-            const queries = sortTableToCreate().map((tName: string) => {
-                const isCreated = MigrationManager.schema().lastFilename(tName) != null 
-                if (!isCreated){
-                    const ecosystemModel = config.ecosystem()?.getModel(tName) as IModel
-                    created.push(ecosystemModel)
-                    return buildTable(ecosystemModel.schema, ecosystemModel.tableName)
-                }
+    const buildAll = async () => {
+        try {
+            const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+                const queries = sortTableToCreate().map((tName: string) => {
+                    const isCreated = MigrationManager.schema().lastFilename(tName) != null 
+                    if (!isCreated){
+                        const ecosystemModel = ecosystem.getModel(tName) as IModel
+                        created.push(ecosystemModel)
+                        return buildTable(ecosystemModel.schema, ecosystemModel.tableName)
+                    }
+                })
+                return Promise.all(queries).then(trx.commit).catch(trx.rollback)
             })
-            return Promise.all(queries).then(trx.commit).catch(trx.rollback)
-        })
-        for (let m of created)
-            MigrationManager.schema().create(m)
-        return res
+            for (let m of created)
+                MigrationManager.schema().create(m)
+            return res
+        } catch (e){
+            throw new Error(e)
+        }
+    }
+
+    try {
+        const startTime = new Date().getTime()
+        const {news, msg} = getMessage()
+        if (news.length > 0){
+            log('\n-------------------------------------------\n')
+            log(msg)
+            await buildAll()
+            for (const n of news){
+                const ecoModel = ecosystem.getModel(n) as IModel
+                MigrationManager.schema().create(ecoModel)
+            }
+            log(`Table${news.length > 1 ? 's' : ''} creation ${Color.FgGreen}succeed${Color.Reset} in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
+            log('\n-------------------------------------------\n')
+        }
     } catch (e){
         throw new Error(e)
     }
 }
+
 
 const dropAllFromEcosystem = async () => {
     const ecosystem = config.ecosystem()
