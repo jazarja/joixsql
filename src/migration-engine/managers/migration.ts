@@ -1,5 +1,5 @@
 import fs from 'fs'
-import config from '../../config'
+import { config } from '../../../index'
 import { Manager } from '../index'
 import { renderFullTemplate } from '../template/template'
 import { IModel } from '../../ecosystem'
@@ -8,7 +8,14 @@ var beautify = require('js-beautify').js
 
 export default (m: Manager) => {
     
-    const create = async (name: string) => await config.mysqlConnexion().migrate.make(name, { directory: path(name) })
+    const doesExist = (name: string) => fs.existsSync(path(name))
+    const createPath = (name: string) => fs.mkdirSync(path(name), { recursive: true })
+    
+    const create = async (name: string) => {
+        if (!doesExist(name))
+            createPath(name)
+        return await config.mysqlConnexion().migrate.make(name, { directory: path(name) })
+    }
     
     const get = (mig: IModel) => {
         const oldTable = m.schema().lastSavedContent(mig.tableName)
@@ -17,6 +24,8 @@ export default (m: Manager) => {
     }
 
     const getListFiles = (name: string) => {
+        if (!doesExist(name))
+            return []
         return fs.readdirSync(path(name), 'utf8')
                 // .filter((e) => e.split('_')[0] === name)
                 .reverse()
@@ -34,14 +43,13 @@ export default (m: Manager) => {
         })
     }
 
-    const path = (name: string) => {
-        const path = `${config.historyDir()}/migrations/${name}`
-        if (!fs.existsSync(path))
-            fs.mkdirSync(path, { recursive: true })
-        return path
-    }
+    const path = (name: string) => `${config.historyDir()}/migrations/${name}`
 
-    const removeAll = (name: string) => fs.rmdirSync(path(name), { recursive: true })
+    const removeAll = (name: string) => {
+        if (!doesExist(name))
+            return
+        fs.rmdirSync(path(name), { recursive: true })
+    }
 
     const removeLast = (name: string) => {
         const list = getListFiles(name)
@@ -49,7 +57,7 @@ export default (m: Manager) => {
     }
 
     const updateMigrationFileContent = (filePath: string, content: string) => {
-        fs.writeFileSync(filePath, beautify(content, { indent_size: 3, space_in_empty_paren: true }))
+        fs.writeFileSync(filePath, beautify(content, { indent_size: 3, space_in_empty_parent: true }))
     }
 
     return { 

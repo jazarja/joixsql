@@ -1,12 +1,15 @@
 import _ from 'lodash'
 import fs from 'fs'
 import { Manager } from '../index'
-import config from '../../config'
+import { config } from '../../../index'
 import { tableToJSON, compare } from '../template/parse' 
 import { IModel } from '../../ecosystem'
 import { TableEngine } from '../../../index'
 
 export default (m: Manager) => {
+
+    const doesExist = (name: string) => fs.existsSync(path(name))
+    const createPath = (name: string) => fs.mkdirSync(path(name), { recursive: true })
 
     const changes = (mig: IModel) => {
         if (hasChanged(mig) && lastFilename(mig.tableName)){
@@ -19,6 +22,8 @@ export default (m: Manager) => {
     }
 
     const create = (mig: IModel) => {
+        if (!doesExist(mig.tableName))
+            createPath(mig.tableName)
         if (hasChanged(mig)){
             fs.writeFileSync(
                 generateFilename(mig.tableName), 
@@ -31,11 +36,18 @@ export default (m: Manager) => {
         }
     }
 
-    const getAllTableName = () => fs.readdirSync(path(''), 'utf8').sort((a: any, b: any) => a-b)
+    const getAllTableName = () => {
+        if (!doesExist(path('')))
+            return []
+        return fs.readdirSync(path(''), 'utf8').sort((a: any, b: any) => a-b)
+    }
 
     const generateFilename = (name: string) => `${path(name)}/${name}_-_${new Date().getTime().toString()}.json`
 
     const getListFiles = (name: string) => {
+        if (!doesExist(name))
+            return []
+
         return fs.readdirSync(path(name), 'utf8')
                 .filter((e) => e.split('_-_')[0] === name)
                 .reverse()
@@ -64,14 +76,13 @@ export default (m: Manager) => {
     } 
 
 
-    const path = (name: string) => {
-        const path = `${config.historyDir()}/schema/${name}`
-        if (!fs.existsSync(path))
-            fs.mkdirSync(path, { recursive: true })
-        return path
-    }
+    const path = (name: string) => `${config.historyDir()}/schema/${name}`
 
-    const removeAll = (name: string) => fs.rmdirSync(path(name), { recursive: true })
+    const removeAll = (name: string) => {
+        if (!doesExist(name))
+            return
+        fs.rmdirSync(path(name), { recursive: true })
+    }
 
     const removeLast = (name: string) => {
         const list = getListFiles(name)

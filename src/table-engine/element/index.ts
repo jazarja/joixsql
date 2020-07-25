@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import knex from 'knex'
+import { config } from '../../../index'
 
 import Is from './is'
 import Get, { IFloatPrecision } from './get'
@@ -10,8 +11,6 @@ import {
     MYSQL_NUMBER_TYPES,
     MYSQL_STRING_TYPES
 } from '../mysql/types'
-
-import config from '../../config'
 
 export default class Element {
     private _element: any

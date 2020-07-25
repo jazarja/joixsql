@@ -12,7 +12,9 @@ import { IUpdated, ITemplate, TColumn } from './src/migration-engine/template/ty
 import MigrationManager from './src/migration-engine'
 import TableEngine from './src/table-engine'
 import Ecosystem, { ISchema, IVerify } from './src/ecosystem'
-import config, { Config, IConfig} from './src/config'
+import Config, { IConfig} from './src/config'
+
+const config = new Config()
 
 export default {
     JoiMySQLExtension,

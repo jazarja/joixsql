@@ -1,18 +1,20 @@
 import { Schema } from '@hapi/joi'
 import _ from 'lodash'
 import knex, { SchemaBuilder } from 'knex'
-import config from '../config'
-import { IAnalyze } from './types'
+import { config } from '../../index'
+import { IAnalyze, IForeign } from './types'
 import Element from './element'
 
 import {
     detectAndTriggerSchemaErrors,
     parseSupportedTypes
 } from './parse'
+import { IModel } from '../ecosystem'
+import { MigrationManager } from '../..'
 
 
-export const analyzeSchema = (schema: Schema): IAnalyze => {
-    detectAndTriggerSchemaErrors(schema)
+const analyzeSchema = (schema: Schema): IAnalyze => {
+    detectAndTriggerSchemaErrors(schema, 'empty')
     const ret: IAnalyze = {
         primary_key: null,
         foreign_keys: [],
@@ -93,7 +95,7 @@ export const analyzeSchema = (schema: Schema): IAnalyze => {
 }
 
 const buildTableString = (schema: Schema, tableName: string): string => {
-    detectAndTriggerSchemaErrors(schema)
+    detectAndTriggerSchemaErrors(schema, tableName)
     const described = schema.describe().keys
     
     const columnSTR = {string: `return knex.schema.createTable('${tableName}', function(t) {\n`}
@@ -120,7 +122,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
 }
 
 const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
-    detectAndTriggerSchemaErrors(schema) 
+    detectAndTriggerSchemaErrors(schema, tableName) 
     const described = schema.describe().keys
     
     return config.mysqlConnexion().schema.createTable(tableName, (table: knex.TableBuilder) => {
@@ -138,9 +140,109 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     })
 }
 
+const buildAllFromEcosystem = async () => {
+    if (!config.ecosystem()){
+        throw new Error("No ecosystem set")
+    }
+
+    const created: IModel[] = []
+    try {
+        const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+            const queries = sortTableToCreate().map((tName: string) => {
+                const isCreated = MigrationManager.schema().lastFilename(tName) != null 
+                if (!isCreated){
+                    const ecosystemModel = config.ecosystem()?.getModel(tName) as IModel
+                    created.push(ecosystemModel)
+                    return buildTable(ecosystemModel.schema, ecosystemModel.tableName)
+                }
+            })
+            return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+        })
+        for (let m of created)
+            MigrationManager.schema().create(m)
+        return res
+    } catch (e){
+        throw new Error(e)
+    }
+}
+
+const dropAllFromEcosystem = async () => {
+    const ecosystem = config.ecosystem()
+    if (!ecosystem){
+        throw new Error("No ecosystem set")
+    }
+    const deleted: IModel[] = []
+    
+    try {
+        await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=0;`)
+        const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+            const queries = sortTableToCreate().map((tName: string) => {
+                const isCreated = MigrationManager.schema().lastFilename(tName) != null 
+                if (isCreated){
+                    deleted.push(ecosystem.getModel(tName) as IModel)
+                    return config.mysqlConnexion().schema.dropTableIfExists(tName)
+                }
+            })
+            return Promise.all(queries).then(trx.commit).catch(trx.rollback)
+        })        
+        for (let m of deleted)
+            MigrationManager.removeAllHistory(m.tableName)
+        return res
+    } catch (e){
+        throw new Error(e)
+    } finally {
+        await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=1;`)
+    }
+}
+
+const sortTableToCreate = () => {
+    const ecosystem = config.ecosystem()
+    if (!ecosystem){
+        return []
+    }
+    const schemaList = ecosystem.list()
+    let tablesToCreate = []
+    let tablesWithFK = []
+
+    const toArrayTableRef = (list: IForeign[]): string[] => list.map((e) => e.required ? e.table_reference : '').filter((e) => e != '')
+
+    for (let schema of schemaList){
+        const tName = schema.tableName
+        const foreignKeys = ecosystem.schema(schema).getForeignKeys()
+        if (foreignKeys.length == 0 || _.every(foreignKeys, {required: false})) 
+            tablesToCreate.push(tName)
+        else 
+            tablesWithFK.push(tName)
+    }
+
+    let i = 0;
+    while (i < tablesWithFK.length){
+        const schema = ecosystem.getModel(tablesWithFK[i]) as IModel
+        const listKeys = toArrayTableRef(ecosystem.schema(schema).getForeignKeys())
+        let count = 0
+        for (const key of listKeys)
+            tablesToCreate.indexOf(key) != -1 && count++
+        
+        if (count === listKeys.length){
+            tablesToCreate.push(tablesWithFK[i])
+            tablesWithFK.splice(i, 1)
+            i = 0;
+        } else {
+            i++
+        }
+    }
+
+    if (tablesWithFK.length > 0)
+        throw new Error(`Table${tablesWithFK.length > 1 ? 's' : ''}: ${tablesWithFK.join(', ')} not created because of crossed foreign keys`)
+    
+    return tablesToCreate
+}
+
 
 export default {
     buildTable,
     buildTableString,
-    analyzeSchema
+    analyzeSchema,
+    buildAllFromEcosystem,
+    dropAllFromEcosystem
 }

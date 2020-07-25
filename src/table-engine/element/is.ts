@@ -48,6 +48,7 @@ export default class Is {
     portSet = () => this.rulesExist() && !!_.find(this.rules(), {name: 'port'})
     maxSizeSet = () => this.string() ? !(!this.maxSet() && this.element().get().stringLengthByType() == -1) : undefined
 
+
     strictlyPositive = () => {
         if (!this.rulesExist()){
             return false

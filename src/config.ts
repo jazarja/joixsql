@@ -15,7 +15,7 @@ export interface IConfig {
     ecosystem: Ecosystem | null
 }
 
-export class Config {
+export default class Config {
 
     private _config: IConfig = {
         mysqlConfig: {},
@@ -46,12 +46,12 @@ export class Config {
                 fs.mkdirSync(this.config().historyDir)
             return this.config().historyDir
         } else 
-            throw new Error("You need to specify a history path directory before using automatic migration.")
+            throw new Error("You need to specify a history path directory before using ecosystem related methods.")
     }
 
     migrationConfig = () => {
         if (!this.historyDir())
-            throw new Error("You need to specify a history path directory before using automatic migration.")
+            throw new Error("You need to specify a history path directory before ecosystem related methods.")
 
         return {
             directory: this.migrationDir(),
@@ -66,7 +66,7 @@ export class Config {
         return connexion  as knex<any, unknown[]>
     }
 
-    setEcoystem = (ecosystem: Ecosystem) => this.set({ ecosystem })
+    setEcosystem = (ecosystem: Ecosystem) => this.set({ ecosystem })
     removeEcosystem = () => this.set({ecosystem: null})
 
     enableCriticalConfirmation = () => this.set({enableCriticalConfirmation: true})
@@ -74,6 +74,7 @@ export class Config {
 
     enableLog = () => this.set({enableLog: true})
     disableLog = () => this.set({enableLog: false})
+    setHistoryDir = (historyDir: string) => this.set({historyDir})
 
     setCriticalCode = (code: string) => this.set({criticalCode: code})
     set = ( config: any ) => {
@@ -81,7 +82,4 @@ export class Config {
             this._makeConnexion(config.mysqlConfig)
         this._config = Object.assign({}, this.config(), config)
     }
-
 }
-
-export default new Config() 

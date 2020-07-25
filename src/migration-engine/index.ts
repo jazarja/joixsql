@@ -1,11 +1,10 @@
-
 import _ from 'lodash'
 import schema from './managers/schema'
 import migration from './managers/migration'
 import confirmation from './managers/confirmation'
 import errors from './managers/errors'
 
-import config from '../config'
+import { config } from '../../index'
 
 import { IUpdated } from './template/types'
 import { IModel } from '../ecosystem'

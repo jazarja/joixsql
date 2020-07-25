@@ -1,5 +1,3 @@
-import Joi from '@hapi/joi'
-
 export type TColumn = string
 
 export interface IUpdated {

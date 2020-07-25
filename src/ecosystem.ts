@@ -44,6 +44,8 @@ export default class Ecosystem {
         this.list().push(model)
         return model
     }
+
+    reset = () => this._list = []
     
     getModel = (tableName: string) => _.find(this.list(), {tableName})
 
