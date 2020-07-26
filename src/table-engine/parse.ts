@@ -7,7 +7,7 @@ import Element from './element'
 import { LIST_SUPPORTED_TYPES } from './mysql/types'
 import Ecosystem from '../ecosystem'
 
-const MYSQL_RESERVED_WORDS_LIST = JSON.parse(fs.readFileSync('./mysql-reserved-words.json', 'utf8'))
+import MYSQL_RESERVED_WORDS_LIST from '../../mysql-reserved-words'
 
 export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) => {
     const described = schema.describe().keys
