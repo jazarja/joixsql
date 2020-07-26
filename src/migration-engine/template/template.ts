@@ -109,7 +109,6 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         const changed = hasChanged(prevCol, nextCol)
         const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus()
 
-
         /*      PRIMARY KEY     */
 
         if (changed.primaryKeySettings()){

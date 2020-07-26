@@ -32,6 +32,7 @@ export class Manager {
         const upds: any = {}
         const adds: any = {}
         const rens: any = {}
+        const affecteds: IModel[] = []
 
         const log = (...msg: any) => config.isLogEnabled() && console.log(...msg)
 
@@ -49,7 +50,7 @@ export class Manager {
 
         const printMigrationMessage = () => {
             const tablesChanged = listTableUpdated()
-            let msg = `Changes detected on ${Color.FgGreen}${tablesChanged.length} table${tablesChanged.length > 1 ? 's' : ''}${Color.Reset}.\n\n`
+            let msg = `We detected ${Color.FgWhite}MySQL table(s) changes${Color.Reset} on ${Color.Bright}${tablesChanged.length} table${tablesChanged.length > 1 ? 's' : ''}${Color.Reset}.\n\n`
             for (let table of tablesChanged){
                 msg += `-  ${Color.Underscore}${table}${Color.Reset}:\n\n`
                 if (!!adds[table]) msg += `   | ${Color.FgGreen}add${Color.Reset}: ${adds[table].map((v: string) => `${Color.Dim}${v}${Color.Reset}`).join(', ')}\n`
@@ -67,7 +68,7 @@ export class Manager {
             for (let key in dels)
                 msg += `   - In table ${Color.Underscore}${key}${Color.Reset}, column${dels[key].length > 1 ? 's' : ''}: ${dels[key].map((v: string) => `${Color.FgYellow}${v}${Color.Reset}`).join(', ') }.\n`
             msg += `\nTo confirm the ${Color.FgRed}deletion${Color.Reset} of these column please set the following code through the method ${Color.FgGreen}setCriticalCode${Color.Reset} in your Configuration Manager, and re-run again the program.\n\n`
-            msg += `Your code is ${Color.FgGreen}${d.code}${Color.Reset}, it has a validy time of ${Color.Bright}10 minutes${Color.Reset}.\n\n`
+            msg += `Your code is ${Color.FgGreen}${d.code}${Color.Reset}, it has a validy time of ${Color.Bright}10 minutes${Color.Reset}.\n`
             log(msg)
         }
 
@@ -93,16 +94,17 @@ export class Manager {
         const migrateAll = async () => {
             if (isMigrationAllowed()){
                 const startTime = new Date().getTime()
+                log('\n-------------------------------------------\n')
                 printMigrationMessage()
-                log('Migration begin 🎬')
                 try {
                     await this.migration().migrateAll()
-                    for (let m of migrations)
+                    for (let m of affecteds)
                         this.schema().create(m)
-                    log(`Migration succeed in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
+                    log(`Table${listTableUpdated().length > 1 ? 's' : ''} migration ${Color.FgGreen}succeed${Color.Reset} in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
+                    log('\n-------------------------------------------\n')
 
                 } catch (e){
-                    for (let m of migrations)
+                    for (let m of affecteds)
                         this.migration().removeLast(m.tableName)
                     log('Migration failed ❌')
                     log('error:', e)
@@ -111,7 +113,9 @@ export class Manager {
                     }
                 }
             } else if (isMigrationNeedsConfirmation()) {
+                log('\n-------------------------------------------\n')
                 printCriticalConfirmationMessage()
+                log('\n-------------------------------------------\n')
                 process.exit()
             }
         }
@@ -120,6 +124,7 @@ export class Manager {
             const m = migrations[i]
             const changes = this.schema().changes(m)
             if (changes != null){
+                affecteds.push(m)
                 fillChanges(dels, changes.deleted, m.tableName)
                 fillChanges(upds, changes.updated, m.tableName)
                 fillChanges(adds, changes.added, m.tableName)
