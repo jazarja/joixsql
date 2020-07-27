@@ -21,7 +21,9 @@ export default class Is {
     date = () => this.type() === 'date'
     boolean = () => this.type() === 'boolean'
 
-    defaultValue = () => this.flagExist() && typeof this.flags().default != 'undefined'
+    isLocalDefaultValue = () => this.defaultValue() && typeof this.flags().default === 'function'
+    isSQLDefaultValue = () => this.defaultValue() && typeof this.flags().default !== 'function'
+    defaultValue = () => this.flagExist() && typeof this.flags().default !== 'undefined'
     insensitive = () => this.flagExist() && !!this.flags().insensitive || false
     required = () => this.flagExist() && this.flags().presence === 'required' || false
     unique = () =>  this.flagExist() && this.flags().unique === true || false

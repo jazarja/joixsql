@@ -41,6 +41,7 @@ export default class Ecosystem {
     list = () => this._list
 
     add = (model: IModel) => {
+        this.delete(model.tableName)
         this.list().push(model)
         return model
     }

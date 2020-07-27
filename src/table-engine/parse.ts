@@ -47,7 +47,7 @@ export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
                 } else {
                     e.rules = [{name: 'positive'}]
                 }
-                e.flags.presence = 'required'
+                e.flags.presence = elem.flags().presence
             }
             e.flags.auto_increment = undefined
             e.flags.primary_key = elem.flags().primary_key

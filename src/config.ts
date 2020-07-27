@@ -50,9 +50,7 @@ export default class Config {
     }
 
     migrationConfig = () => {
-        if (!this.historyDir())
-            throw new Error("You need to specify a history path directory before ecosystem related methods.")
-
+        this.historyDir()
         return {
             directory: this.migrationDir(),
             extension: 'js',

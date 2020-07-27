@@ -37,7 +37,7 @@ export default (m: Manager) => {
     }
 
     const getAllTableName = () => {
-        if (!doesExist(path('')))
+        if (!doesExist(''))
             return []
         return fs.readdirSync(path(''), 'utf8').sort((a: any, b: any) => a-b)
     }

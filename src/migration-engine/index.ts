@@ -27,7 +27,10 @@ export class Manager {
         this.migration().removeLast(tableName)
     }
 
-    smartMigration = async (migrations: IModel[]) => {
+    smartMigration = async () => {
+        const ecosystem = config.ecosystem()
+        const migrations = !ecosystem ? [] : ecosystem.list()
+
         const dels: any = {}
         const upds: any = {}
         const adds: any = {}

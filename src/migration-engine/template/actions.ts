@@ -1,5 +1,5 @@
 import { TColumn, TObjectStringString } from './types'
-import { clearMethods } from './parse'
+import { clearMethods, cumulateWithMethod } from './parse'
 import sqlInfo from './info'
 
 
@@ -14,17 +14,16 @@ const primary = () => {
 
     const dropAutoIncrement = (key: string, col: string) => {
         const method = sqlInfo(col).method(false) as string
-        let ret = `t`
+        let ret = ``
         if (method.startsWith(methods.autoIncrement)){
-            ret = any().integer(ret, key)
+            ret = any().integer('t', key)
             ret = any().unsigned(ret)           
         } else {
-            ret += `t.${method}`
+            ret = `t.${method}`
             if (sqlInfo(col).isUnsigned())
                 ret = any().unsigned(ret)
         }
-        ret = column().alter(ret)
-        return ret
+        return column().alter(ret) + ';\n'
     }
     const setPrimaryWithIncrement = (key: string) => `t.${methods.autoIncrement}('${key}');\n`
     const setPrimary = (key: string) => `t.${methods.set}('${key}');\n`
@@ -39,9 +38,10 @@ const primary = () => {
 
         //setters
         set: (key: string, autoIncrement: boolean) => autoIncrement ? setPrimaryWithIncrement(key) : setPrimary(key),
-        add:  (prefix: string) => prefix + `.${methods.set}()`,
-        setIncrement: (tableName: string, column: string) => `knex.raw(\`ALTER TABLE ${tableName} CHANGE ${sqlInfo(column).key()} ${sqlInfo(column).key()} INT(11) UNSIGNED NOT NULL AUTO_INCREMENT\`),\n`,
-        
+        add:  (col: TColumn) => cumulateWithMethod(col, `.${methods.set}()`),
+        positionAndIncrementsRaw: (tableName: string, column: string) => {
+            return `knex.raw(\`ALTER TABLE ${tableName} CHANGE ${sqlInfo(column).key()} ${sqlInfo(column).key()} INT(10) ${sqlInfo(column).isDeepUnsigned() ? 'UNSIGNED' : ''} NOT NULL ${sqlInfo(column).isAutoIncrements() ? 'AUTO_INCREMENT' : ''} FIRST\`),\n`
+        },
         //droppers
         drop: (key: string, autoIncrement: boolean, column: string) => `${autoIncrement ? dropAutoIncrement(key, column) : ''}t.${methods.drop}('${key}');\n`,
         dropAutoIncrement
@@ -51,7 +51,7 @@ const primary = () => {
 const column = () => {
     return {
         create: (col: TColumn) =>  `${col};\n`,
-        alter: (col: TColumn) => `${col}.alter();\n`,
+        alter: (col: TColumn) => cumulateWithMethod(col, `.alter()`),
         drop: (key: TColumn) => `t.dropColumn('${key}');\n`,
         rename: (from: TColumn, to: TColumn) => `t.renameColumn('${from}', '${to}');\n`
     }
@@ -91,21 +91,35 @@ const foreign = () => {
     }
 }
 
-const any = () => {
+const defaultValue = () => {
     const methods: TObjectStringString = {
-        unsigned: 'unsigned',
-        defaultTo: 'defaultTo',
-        integer: 'integer'
+        set: 'defaultTo'
     }
 
     return {
         clear: (col: TColumn) => clearMethods(col, methods),
-        unsigned: (prefix: string) => prefix + `.${methods.unsigned}()`,
-        integer: (prefix: string, key: string) => prefix + `.${methods.integer}('${key}')`,
-        defaultTo: (prefix: string, value: string, isStringValue: boolean = false) =>{
+        is: (col: TColumn) => {
+            const f = sqlInfo(col).pullDefaultTo()
+            return f != undefined
+        },
+        set: (col: TColumn, value: string, isStringValue: boolean = false) => {
             const v = isStringValue ? `'${value}'` : value
-            return prefix + `.${methods.defaultTo}(${v})`  
-        }
+            return cumulateWithMethod(col, `.${methods.set}(${v})`)
+        },
+        drop: (tableName: string, column: string) => `knex.raw(\`ALTER TABLE ${tableName} ALTER COLUMN ${sqlInfo(column).key()} DROP DEFAULT\`),\n`
+    }
+}
+
+const any = () => {
+    const methods: TObjectStringString = {
+        unsigned: 'unsigned',
+        integer: 'integer',
+    }
+    
+    return {
+        clear: (col: TColumn) => clearMethods(col, methods),
+        unsigned: (column: string) => cumulateWithMethod(column, `.${methods.unsigned}()`),
+        integer: (column: string, key: string) => column + `.${methods.integer}('${key}')`,
     }
 }
 
@@ -132,8 +146,8 @@ const notNullable =  () => {
     return {
         clear: (col: TColumn) => clearMethods(col, methods),
         is: (col: TColumn) => sqlInfo(col).isNotNullable(),
-        set: (prefix: string) => prefix + `.${methods.set}()`,
-        drop: (prefix: string) => prefix + `.${methods.drop}()`
+        set: (col: TColumn) => cumulateWithMethod(col, `.${methods.set}()`),
+        drop: (col: TColumn) => cumulateWithMethod(col, `.${methods.drop}()`)
     }
 }
 
@@ -143,6 +157,7 @@ export default {
     primary,
     foreign,
     unique,
+    defaultValue,
     any,
     notNullable,
     column

@@ -4,7 +4,9 @@ import { SchemaBuilder } from 'knex'
 interface ITableEngine {
     analyzeSchema(schema: Schema): IAnalyze
     buildTableString(schema: Schema, tableName: string): string
-    buildTable(schema: Schema, tableName: string): SchemaBuilder
+    buildTable(schema: Schema, tableName: string): Promise<any>
+    buildAllFromEcosystem(): Promise<void>
+    dropAllFromEcosystem(): Promise<void>
 }
 
 interface IAnalyze {

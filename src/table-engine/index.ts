@@ -69,7 +69,7 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
             })
         }
 
-        if (elem.is().defaultValue()){
+        if (elem.is().isSQLDefaultValue()){
             let dv = elem.get().defaultValue()
             if (elem.is().date() && dv === 'now'){
                 if (elem.is().dateUnix())
@@ -80,7 +80,11 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
                 }
             }
             ret.defaults[key] = dv
+        } else if (elem.is().isLocalDefaultValue()) {
+            const dv = elem.get().defaultValue()
+            ret.defaults[key] = dv()
         }
+
 
         if (elem.is().group()){
             for (const e of elem.get().group()){
@@ -120,6 +124,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
     );`
     return columnSTR.string
 }
+
 
 const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     detectAndTriggerSchemaErrors(schema, tableName) 
@@ -222,7 +227,7 @@ const dropAllFromEcosystem = async () => {
         try {
             await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=0;`)
             const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
-                const queries = sortTableToCreate().map((tName: string) => {
+                const queries = sortTableToCreate().reverse().map((tName: string) => {
                     const isCreated = MigrationManager.schema().lastFilename(tName) != null 
                     if (isCreated){
                         deleted.push(ecosystem.getModel(tName) as IModel)
@@ -244,7 +249,7 @@ const dropAllFromEcosystem = async () => {
     await deleteAll()
 }
 
-const sortTableToCreate = () => {
+export const sortTableToCreate = () => {
     const ecosystem = config.ecosystem()
     if (!ecosystem){
         return []

@@ -4,6 +4,8 @@ import { Manager } from '../index'
 import { renderFullTemplate } from '../template/template'
 import { IModel } from '../../ecosystem'
 import { tableToJSON } from '../template/parse'
+import { sortTableToCreate } from '../../table-engine/index'
+
 var beautify = require('js-beautify').js
 
 export default (m: Manager) => {
@@ -39,7 +41,7 @@ export default (m: Manager) => {
 
     const migrateAll = async () => {
         return await config.mysqlConnexion().migrate.latest({
-            directory: m.schema().getAllTableName().map((table: string) => path(table))
+            directory: sortTableToCreate().map((table: string) => path(table))
         })
     }
 

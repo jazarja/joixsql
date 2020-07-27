@@ -117,6 +117,13 @@ export const clearMethods = (column: TColumn, methods: TObjectStringString ) => 
     return column
 }
 
+export const cumulateWithMethod = (column: TColumn, method: string) => {
+    let newStr = column.slice(0, column.lastIndexOf(')') + 1)
+    newStr += method
+    newStr += column.slice(column.lastIndexOf(')') + 1, column.length)
+    return newStr
+}
+
 export const replaceLast = (str: string, what: string, replacement: string) => {
     var pcs = str.split(what);
     var lastPc = pcs.pop();

@@ -54,22 +54,21 @@ export default class Element {
             column = column.references(key).inTable(table)
             columnSTR.string += `.references('${key}').inTable('${table}')`
         }
-        if (this.is().defaultValue()){
+        if (this.is().isSQLDefaultValue()){
             const initialDefaultValue = this.get().defaultValue()
             let defaultValue = initialDefaultValue
-
-            if (this.is().date() && !this.is().dateUnix() && initialDefaultValue !== 'now'){
-                defaultValue = toValidMySQLDateString(new Date(defaultValue))
-            }
 
             if (this.is().date() && initialDefaultValue === 'now'){
                 columnSTR.string += `.defaultTo(${initialDefaultValue === 'now' ? (this.is().dateUnix() ? `knex.fn.now()` : `knex.raw('now()')`) : `'${initialDefaultValue}'`})`
                 defaultValue = this.is().dateUnix() ? config.mysqlConnexion().fn.now() : config.mysqlConnexion().raw(`now()`)
+                column = column.defaultTo(defaultValue)
+            } else if ( this.is().date() && initialDefaultValue !== 'now' ){
+                defaultValue = toValidMySQLDateString(new Date(defaultValue))
+                columnSTR.string += `.defaultTo('${defaultValue}')`
             } else {
                 columnSTR.string += `.defaultTo('${defaultValue}')`
+                column = column.defaultTo(defaultValue)
             }
-            
-            column = column.defaultTo(defaultValue)
         }
 
         if (this.is().required() && !this.is().primaryKey()){
@@ -99,6 +98,14 @@ export default class Element {
             }
         }
 
+        if (this.is().dateUnix() || this.is().dateFormatSet())
+            throw new Error("Timestamp types are not supported.")
+        
+        // //only unix allowed on date format
+        // if (this.is().dateFormatSet() && !this.is().dateUnix()){
+        //     throw new Error("only unix format is supported")
+        // }
+
         if (this.is().defaultValue()){
 
             if (this.is().enum()){
@@ -109,7 +116,6 @@ export default class Element {
                 } 
             }
         }
-    
 
         if (this.is().string()){
             const max = this.is().maxSet() ? this.get().max() : this.get().stringLengthByType()
@@ -118,10 +124,6 @@ export default class Element {
             }
         }
     
-        //only unix allowed on date format
-        if (this.is().dateFormatSet() && !this.is().dateUnix()){
-            throw new Error("only unix format is supported")
-        }
         return this
     }
 

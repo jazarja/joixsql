@@ -3,7 +3,7 @@ import { TObjectStringString } from './types'
 import actions from './actions'
 import sqlInfo from './info'
 import hasChanged from './changes'
-import { compare, replaceLast } from './parse'
+import { compare, replaceLast, cumulateWithMethod } from './parse'
 
 export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string) => {
     const ret: string[] = []
@@ -34,7 +34,8 @@ const renderTemplates = (oldTable: TObjectStringString, newTable: TObjectStringS
         ...getDeletedExecutionList(deleted), 
         ...getRenamedExecutionList(renamed), 
         ...getUpdatedExecutedList(updated, tableName), 
-        ...getAddedExecutionList(added)]
+        ...getAddedExecutionList(added, tableName),
+    ]
 
     const tableActions = actions.filter((v: string) => v.trim().startsWith('t.'))
     const rawActions = actions.filter((v: string) => !v.trim().startsWith('t.'))
@@ -58,10 +59,12 @@ const renderTemplates = (oldTable: TObjectStringString, newTable: TObjectStringS
 }
 
 
-export const getAddedExecutionList = (added: TObjectStringString) => {
+export const getAddedExecutionList = (added: TObjectStringString, tableName: string) => {
     let executionList: string[] = []
-    for (let key in added)
+    for (let key in added){
         executionList.push(actions.column().create(added[key]))
+        !!sqlInfo(added[key]).pullPrimary() && executionList.push(actions.primary().positionAndIncrementsRaw(tableName, added[key]))
+    }
     return executionList
 }
 
@@ -107,7 +110,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         const isNextUnique = actions.unique().is(nextCol)
 
         const changed = hasChanged(prevCol, nextCol)
-        const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus()
+        const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus() || changed.defaultValue()
 
         /*      PRIMARY KEY     */
 
@@ -121,13 +124,13 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
 
                 } else if (!prevPrimary.autoIncrement && nextPrimary.autoIncrement){
                
-                    executionList.push(actions.primary().setIncrement(tableName, nextCol))
+                    executionList.push(actions.primary().positionAndIncrementsRaw(tableName, nextCol))
                 }
 
             } else if (!prevPrimary && nextPrimary){
 
                 executionList.push(actions.primary().set(key, false))
-                nextPrimary.autoIncrement && executionList.push(actions.primary().setIncrement(tableName, nextCol))
+                executionList.push(actions.primary().positionAndIncrementsRaw(tableName, nextCol))
 
             } else if (prevPrimary && !nextPrimary){
 
@@ -166,7 +169,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
             prevCol = actions.unique().clear(prevCol)
             nextCol = actions.unique().clear(nextCol)
         }
-    
+        
         const composer = () => {
             if (hasSQLColumnFormatChanged){
                 let ret = `t.`
@@ -178,7 +181,10 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
                 if (changed.defaultValue()){
                     const defVal = sqlInfo(nextCol).pullDefaultTo()
                     if (defVal != undefined)
-                        ret = actions.any().defaultTo(ret, defVal, !sqlInfo(nextCol).isDate())
+                        ret = actions.defaultValue().set(ret, defVal, !sqlInfo(nextCol).isDate())
+                    else if (defVal == undefined && actions.defaultValue().is(prevCol)){
+                        executionList.push(actions.defaultValue().drop(tableName, nextCol))
+                    }
                 }
 
                 if (changed.nullableStatus()){
@@ -192,8 +198,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
                     if (!sqlInfo(prevCol).isUnsigned() && sqlInfo(nextCol).isUnsigned())
                         ret = actions.any().unsigned(ret)
                 }
-                ret = actions.column().alter(ret)
-                return ret
+                return actions.column().alter(ret) + ';\n'
             }
             return null            
         }

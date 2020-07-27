@@ -65,13 +65,21 @@ export default (column: TColumn) => {
     const isUnique = () => !!pullFullMethodFromColumn('unique', column)
     const isNotNullable = () => !!pullFullMethodFromColumn('notNullable', column)
     const isDate = () => type() === 'timestamp' || type() === 'dateTime'
+    const isTimestampType = () => type() === 'timestamp'
+    const isDateTimeType = () => type() === 'dateTime'
+
 
     const isUnsigned = () => !!pullFullMethodFromColumn('unsigned', column)
     const isDeepUnsigned = () => {
         if (isUnsigned())
             return true
         const m = method(false) as string
-        return m.toLowerCase().indexOf('unsigned') != -1
+        return m.toLowerCase().indexOf('unsigned') != -1 || m.toLowerCase().indexOf('increments') != -1
+    }
+
+    const isAutoIncrements = () => {
+        const m = method(false) as string
+        return m.toLowerCase().indexOf('increments') != -1
     }
 
 
@@ -94,6 +102,9 @@ export default (column: TColumn) => {
         isDeepUnsigned,
         isUnsigned,
         isDate,
+        isTimestampType,
+        isDateTimeType,
+        isAutoIncrements,
         isUnique,
         isNotNullable,
         pullDefaultTo,
