@@ -16,3 +16,21 @@ export const toValidMySQLDateString = (d: Date): string => {
     
     return `${dateDetail.year}-${dateDetail.month}-${dateDetail.day} ${dateDetail.hour}:${dateDetail.minute}:${dateDetail.second}`
 }
+
+export const isValidDefaultValueFunction = (value: any) => {
+    const forbiddenNativeClass = [
+        Array,
+        Date,
+        Object,
+        Number,
+        String,
+        Symbol
+    ]
+    const err = (thing: any) => new Error(`${thing} is not accepted as default value`)
+    const isFunction = (value: any) => value && (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function);
+    for (let i = 0; i < forbiddenNativeClass.length; i++){
+        if (value instanceof forbiddenNativeClass[i] && !isFunction(value))
+            return err(forbiddenNativeClass[i].name)
+    }
+    return err(value)
+}

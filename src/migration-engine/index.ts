@@ -98,7 +98,8 @@ export class Manager {
 
         const generateTemplate = async (m: IModel) => {
             let i = 0;
-            for (let template of this.migration().get(m)){
+            const templates = await this.migration().get(m)
+            for (let template of templates){
                 try {
                     if (i > 0)
                         await new Promise(resolve => setTimeout(resolve, 1000));

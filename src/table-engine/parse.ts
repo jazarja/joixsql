@@ -14,7 +14,7 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
     let countPrimary = 0
     
     const detectMySQLNamingError = (key: string) => {
-        if (_.find(MYSQL_RESERVED_WORDS_LIST, key)){
+        if (MYSQL_RESERVED_WORDS_LIST.indexOf(key) != -1){
             throw new Error(`You can't use ${key} as a table or column name. ${key} is a transact-SQL reserved word. More here: https://dev.mysql.com/doc/refman/8.0/en/keywords.html`)
         }
         const reg = /^[\w][\w_]*$/

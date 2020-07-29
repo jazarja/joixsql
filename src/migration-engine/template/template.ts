@@ -3,13 +3,14 @@ import { TObjectStringString } from './types'
 import actions from './actions'
 import sqlInfo from './info'
 import hasChanged from './changes'
-import { compare, replaceLast, cumulateWithMethod } from './parse'
-import { TColumn } from '../../..'
+import { handleUpdateProhibitions } from './prohibitions'
 
-export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string) => {
+import { compare, replaceLast } from './parse'
+
+export const renderFullTemplate = async (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string) => {
     const ret: string[] = []
-    const templateUp = renderTemplates(oldTable, newTable, tableName)
-    const templateDown = renderTemplates(newTable, oldTable, tableName)
+    const templateUp = await renderTemplates(oldTable, newTable, tableName, true)
+    const templateDown = await renderTemplates(newTable, oldTable, tableName)
 
     const emptyTemplate = `return Promise.all([])`
 
@@ -27,9 +28,12 @@ export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObj
     return ret
 }
 
-const renderTemplates = (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string) => {
-    const ret: string[] = []
+const renderTemplates = async (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string, enableCheck = false) => {
     const { added, updated, renamed, deleted} = compare(oldTable, newTable)
+
+    if (enableCheck){
+        await handleUpdateProhibitions(updated, tableName)
+    }
 
     let actions = [
         ...getDeletedExecutionList(deleted), 
@@ -61,7 +65,7 @@ const renderTemplates = (oldTable: TObjectStringString, newTable: TObjectStringS
             tmp.push(e)
         }
     }
-    
+
     tmp.length > 0 && arr.push(tmp)
 
     return arr.map((e: string[]) => {

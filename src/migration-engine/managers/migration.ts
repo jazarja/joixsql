@@ -19,10 +19,10 @@ export default (m: Manager) => {
         return await config.mysqlConnexion().migrate.make(name, { directory: path(name) })
     }
     
-    const get = (mig: IModel) => {
+    const get = async (mig: IModel) => {
         const oldTable = m.schema().lastSavedContent(mig.tableName)
         const newTable = tableToJSON(m.schema().toTableString(mig))
-        return renderFullTemplate(oldTable, newTable, mig.tableName)
+        return await renderFullTemplate(oldTable, newTable, mig.tableName)
     }
 
     const getListFiles = (name: string) => {

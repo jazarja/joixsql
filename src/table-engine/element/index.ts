@@ -4,7 +4,7 @@ import { config } from '../../../index'
 
 import Is from './is'
 import Get, { IFloatPrecision } from './get'
-import { toValidMySQLDateString } from './utils'
+import { toValidMySQLDateString, isValidDefaultValueFunction } from './utils'
 
 import { 
     DEFAULT_SQL_TYPES,
@@ -85,42 +85,94 @@ export default class Element {
         }
     }
 
+    public defaultValueErrorScanner = () => {
+        if (this.is().defaultValue()){
+            let defaultValue = this.get().defaultValue()
+            let dvType = typeof defaultValue
+            
+            const isPureDefaultValueForbidden = () => dvType !== 'boolean' && dvType !== 'string' && dvType != 'number' && !(defaultValue instanceof Date)
+            
+            if (isPureDefaultValueForbidden()){
+                const err = isValidDefaultValueFunction(defaultValue)
+                if (err)
+                    throw err
+                defaultValue = defaultValue()
+                dvType = typeof defaultValue
+                if (isPureDefaultValueForbidden())
+                    throw new Error(`Key: ${this.key()} - Only string, number, boolean and Date type are accepted as default value.`)
+            }
+
+            if (this.is().enum()){
+                const allows = this.get().allow()
+
+                if (allows.indexOf(defaultValue) == -1)
+                    throw new Error(`Key: ${this.key()} - Enum's default value can't be different than the values.`)
+
+                for (const e of allows){
+                    if ((this.is().number() && typeof e !== 'number') || 
+                        (this.is().string() && typeof e !== 'string') || 
+                        (this.is().dateFormatSet() && typeof e !== 'string' && !(e instanceof Date))){
+                        throw new Error(`Key: ${this.key()} - Enum's values should have the same type than the column one.`)
+                    }
+                }
+
+            } else {
+                if ((this.is().string() && dvType !== 'string') ||
+                    (this.is().number() && dvType !== 'number') ||
+                    (this.is().date() && dvType !== 'string' && !(defaultValue instanceof Date))){
+                    throw new Error(`Key: ${this.key()} - Default value type can't be different than the column one.`)
+                }
+            }
+
+            if (this.is().string()){
+                const max = this.get().max() || this.get().stringLengthByType()
+                if (max == -1)
+                    throw new Error(`Key: ${this.key()} - String kind not treated, please set a max value for this field.`)
+                if (max < defaultValue.length)
+                    throw new Error(`Key: ${this.key()} - Default value length is greater than the maximum length allowed for this string.`)
+            }
+    
+            if (this.is().number()){
+                const v = this.get().numberValueAndType()
+                if (!v)
+                    throw new Error(`Key: ${this.key()} - Internal error with default value maximum size allowed checking.`)
+                if (v.maximum > defaultValue){
+                    throw new Error(`Key: ${this.key()} - The default value is greater than the maximum value allowed by the column type: ${v.type}`)
+                }
+                if (v.minimum < defaultValue){
+                    throw new Error(`Key: ${this.key()} - The default value is less than the maximum value allowed by the column type: ${v.type}`)
+                }
+            }
+        }
+    }
+
     public errorScanner = () => {
         //primary key
         if (this.is().primaryKey()){
             if (this.is().foreignKey())
-                throw new Error("Your schema can't contain a value that is a primary key and a foreign key")
+                throw new Error(`Key: ${this.key()} - Your schema can't contain a value that is a primary key and a foreign key`)
         }
     
         if (this.is().string()){
             if (!this.is().enum() && this.is().defaultValue() && !this.is().maxSizeSet()){
-                throw new Error("A TEXT can't have a default value, you need to set a column size")
+                throw new Error(`Key: ${this.key()} - A TEXT can't have a default value, you need to set a column size`)
             }
         }
 
         if (this.is().dateUnix() || this.is().dateFormatSet())
-            throw new Error("Timestamp types are not supported.")
+            throw new Error(`Key: ${this.key()} - Timestamp types are not supported.`)
         
         // //only unix allowed on date format
         // if (this.is().dateFormatSet() && !this.is().dateUnix()){
         //     throw new Error("only unix format is supported")
         // }
 
-        if (this.is().defaultValue()){
-
-            if (this.is().enum()){
-                const defaultValue = this.get().defaultValue()
-                const allows = this.get().allow()
-                if (allows.indexOf(defaultValue) == -1){
-                    throw new Error("Enum's default value can't be different than the values.")
-                } 
-            }
-        }
+        this.defaultValueErrorScanner()
 
         if (this.is().string()){
             const max = this.is().maxSet() ? this.get().max() : this.get().stringLengthByType()
             if ((max > MYSQL_STRING_TYPES[0].max || max == -1) && this.is().unique()){
-                throw new Error("The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535")                
+                throw new Error(`Key: ${this.key()} - The maximum length of a string with a UNIQUE options should be defined. The maximum size is 65535`)
             }
         }
     
