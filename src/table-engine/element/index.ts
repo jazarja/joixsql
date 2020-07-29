@@ -62,8 +62,8 @@ export default class Element {
                 columnSTR.string += `.defaultTo(${initialDefaultValue === 'now' ? (this.is().dateUnix() ? `knex.fn.now()` : `knex.raw('now()')`) : `'${initialDefaultValue}'`})`
                 defaultValue = this.is().dateUnix() ? config.mysqlConnexion().fn.now() : config.mysqlConnexion().raw(`now()`)
                 column = column.defaultTo(defaultValue)
-            } else if ( this.is().date() && initialDefaultValue !== 'now' ){
-                defaultValue = toValidMySQLDateString(new Date(defaultValue))
+            } else if (this.is().date() && initialDefaultValue !== 'now' ){
+                defaultValue = column.defaultTo(toValidMySQLDateString(new Date(defaultValue)))
                 columnSTR.string += `.defaultTo('${defaultValue}')`
             } else {
                 columnSTR.string += `.defaultTo('${defaultValue}')`

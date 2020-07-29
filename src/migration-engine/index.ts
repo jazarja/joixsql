@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import fs from 'fs'
 import schema from './managers/schema'
 import migration from './managers/migration'
 import confirmation from './managers/confirmation'
@@ -14,7 +15,7 @@ export class Manager {
     
     schema = () => schema(this)
     migration = () => migration(this)
-    errors = () => errors()
+    // errors = () => errors()
     confirmation = () => confirmation()
 
     removeAllHistory = (tableName: string) => {
@@ -36,6 +37,7 @@ export class Manager {
         const adds: any = {}
         const rens: any = {}
         const affecteds: IModel[] = []
+        const migrationFilesPath: string[] = []
 
         const log = (...msg: any) => config.isLogEnabled() && console.log(...msg)
 
@@ -94,6 +96,22 @@ export class Manager {
                 return false
         }
 
+        const generateTemplate = async (m: IModel) => {
+            let i = 0;
+            for (let template of this.migration().get(m)){
+                try {
+                    if (i > 0)
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    const filePath = await this.migration().create(m.tableName)
+                    this.migration().updateMigrationFileContent(filePath, template)
+                    migrationFilesPath.push(filePath)
+                } catch (e){
+                    throw new Error(e)
+                }
+                i++
+            }
+        }
+
         const migrateAll = async () => {
             if (isMigrationAllowed()){
                 const startTime = new Date().getTime()
@@ -105,17 +123,17 @@ export class Manager {
                         this.schema().create(m)
                     log(`Table${listTableUpdated().length > 1 ? 's' : ''} migration ${Color.FgGreen}succeed${Color.Reset} in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
                     log('\n-------------------------------------------\n')
-
                 } catch (e){
-                    for (let m of affecteds)
-                        this.migration().removeLast(m.tableName)
-                    log('Migration failed ❌')
-                    log('error:', e)
-                    if (!config.isLogEnabled()){
-                        throw new Error(e)
-                    }
+                    config.isRemovingMigrationOnErrorEnabled() && migrationFilesPath.map((fp: string) => fs.unlinkSync(fp))
+                    console.log(`\nMigration ${Color.FgRed}failed${Color.Reset}.`)
+                    console.log(`\ni) Migration files removing on error is ${config.isRemovingMigrationOnErrorEnabled() ? Color.FgGreen : Color.FgRed}${config.isRemovingMigrationOnErrorEnabled() ? 'enabled' : 'disabled'}${Color.Reset}.`)
+                    config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually fix the error if it comes from a SQL data conflict with your new schema constraints, before re-running the program.`)
+                    !config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually remove the migration files causing the error before re-running the program.`)
+                    throw new Error(e)
                 }
+
             } else if (isMigrationNeedsConfirmation()) {
+
                 log('\n-------------------------------------------\n')
                 printCriticalConfirmationMessage()
                 log('\n-------------------------------------------\n')
@@ -132,27 +150,11 @@ export class Manager {
                 fillChanges(upds, changes.updated, m.tableName)
                 fillChanges(adds, changes.added, m.tableName)
                 fillRenamed(rens, changes.renamed, m.tableName)
-                await this.generateTemplateWithoutMigration(m)
+                await generateTemplate(m)
             }
         }
         await migrateAll()
     }
-
-    generateTemplateWithoutMigration = async (m: IModel) => {
-        let i = 0;
-        for (let template of this.migration().get(m)){
-            try {
-                if (i > 0)
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                const filename = await this.migration().create(m.tableName)
-                this.migration().updateMigrationFileContent(filename, template)
-            } catch (e){
-                throw new Error(e)
-            }
-            i++
-        }
-    }
-
 }
 
 export default new Manager()

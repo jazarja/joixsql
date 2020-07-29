@@ -4,6 +4,7 @@ import actions from './actions'
 import sqlInfo from './info'
 import hasChanged from './changes'
 import { compare, replaceLast, cumulateWithMethod } from './parse'
+import { TColumn } from '../../..'
 
 export const renderFullTemplate = (oldTable: TObjectStringString, newTable: TObjectStringString, tableName: string) => {
     const ret: string[] = []
@@ -36,26 +37,44 @@ const renderTemplates = (oldTable: TObjectStringString, newTable: TObjectStringS
         ...getUpdatedExecutedList(updated, tableName), 
         ...getAddedExecutionList(added, tableName),
     ]
+    let arr: string[][] = []
+    let tmp: string[] = []
+    let tableTask = true
 
-    const tableActions = actions.filter((v: string) => v.trim().startsWith('t.'))
-    const rawActions = actions.filter((v: string) => !v.trim().startsWith('t.'))
+    const isTableTask = (e: string) => e.trim().startsWith('t.')
+    const isQueryTask = (e: string) => e.trim().startsWith('knex.raw')
 
-    if (tableActions.length > 0){
-        ret.push(`
-            return knex.schema.table('${tableName}', function(t) {
-                ${replaceLast(tableActions.join(''), '\n', '')}
-            })
-        `)
+    const onTableTaskChange = () => {
+        tableTask = !tableTask
+        tmp.length > 0 && arr.push(tmp)
+        tmp = []
     }
 
-    if (rawActions.length > 0){
-        ret.push(`
-            return Promise.all([
-                ${replaceLast(rawActions.join(''), ',\n', '')}
-            ])
-        `)
+    for (let e of actions){
+        if (isTableTask(e)){
+            !tableTask && onTableTaskChange()
+            tmp.push(e)
+        }
+
+        if (isQueryTask(e)){
+            tableTask && onTableTaskChange()
+            tmp.push(e)
+        }
     }
-    return ret
+    
+    tmp.length > 0 && arr.push(tmp)
+
+    return arr.map((e: string[]) => {
+        if (isTableTask(e[0])){
+            return `return knex.schema.table('${tableName}', function(t) {
+                ${replaceLast(e.join(''), '\n', '')}
+            })`
+        } else {
+            return `return Promise.all([
+                ${replaceLast(e.join(''), ',\n', '')}
+            ])`
+        }
+    })
 }
 
 
@@ -113,6 +132,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus() || changed.defaultValue()
 
         /*      PRIMARY KEY     */
+        let shouldUnshiftChange = false
 
         if (changed.primaryKeySettings()){
 
@@ -135,7 +155,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
             } else if (prevPrimary && !nextPrimary){
 
                 executionList.unshift(actions.primary().drop(key, !hasSQLColumnFormatChanged && prevPrimary.autoIncrement, nextCol))            
-
+                shouldUnshiftChange = true
             }
             
             prevCol = actions.primary().clear(prevCol)
@@ -184,6 +204,8 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
                         ret = actions.defaultValue().set(ret, defVal, !sqlInfo(nextCol).isDate())
                     else if (defVal == undefined && actions.defaultValue().is(prevCol)){
                         executionList.push(actions.defaultValue().drop(tableName, nextCol))
+                        if (!changed.method() && !changed.nullableStatus() && !changed.type() && !changed.unsignedStatus())
+                            return null
                     }
                 }
 
@@ -204,7 +226,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         }
 
         const line = composer()
-        line && executionList.push(line)
+        line && executionList[shouldUnshiftChange ? 'unshift' : 'push'](line)
     }
     return executionList
 }

@@ -33,6 +33,8 @@ export default (m: Manager) => {
                 .reverse()
     }
 
+    const getListMigrationPaths = () => sortTableToCreate().filter((table: string) => doesExist(table)).map((table: string) => path(table))
+
     const migrateUp = async (table: string) => {
         return await config.mysqlConnexion().migrate.up({
             directory: path(table)
@@ -41,7 +43,7 @@ export default (m: Manager) => {
 
     const migrateAll = async () => {
         return await config.mysqlConnexion().migrate.latest({
-            directory: sortTableToCreate().map((table: string) => path(table))
+            directory: getListMigrationPaths(),
         })
     }
 
@@ -67,6 +69,7 @@ export default (m: Manager) => {
         migrateUp, migrateAll,
         removeLast, removeAll,
         path, create, getListFiles,
-        updateMigrationFileContent 
+        updateMigrationFileContent,
+        getListMigrationPaths
     }
 }

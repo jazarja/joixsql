@@ -11,6 +11,7 @@ export interface IConfig {
     production: boolean
     criticalCode: string | null
     enableCriticalConfirmation: boolean
+    enableMigrationRemovingOnError: boolean
     enableLog: boolean,
     ecosystem: Ecosystem | null
 }
@@ -24,6 +25,7 @@ export default class Config {
         criticalCode: null,
         enableLog: true,
         enableCriticalConfirmation: true,
+        enableMigrationRemovingOnError: false,
         ecosystem: null
     }
 
@@ -35,6 +37,7 @@ export default class Config {
     criticalCode = () => this.config().criticalCode
     migrationDir = () => this.historyDir() + '/migrations'
     ecosystem = () => this.config().ecosystem
+
 
     isCriticalConfirmationEnabled = () => this.config().enableCriticalConfirmation
     isLogEnabled = () => this.config().enableLog
@@ -73,6 +76,10 @@ export default class Config {
     enableLog = () => this.set({enableLog: true})
     disableLog = () => this.set({enableLog: false})
     setHistoryDir = (historyDir: string) => this.set({historyDir})
+
+    isRemovingMigrationOnErrorEnabled = () => this.config().enableMigrationRemovingOnError
+    enableMigrationRemovingOnError = () => this.set({ enableMigrationRemovingOnError: true  })    
+    disableMigrationRemovingOnError = () => this.set({ enableMigrationRemovingOnError: false  })    
 
     setCriticalCode = (code: string) => this.set({criticalCode: code})
     set = ( config: any ) => {
