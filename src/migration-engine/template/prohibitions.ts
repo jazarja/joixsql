@@ -2,12 +2,14 @@ import { config } from '../../..'
 import { TObjectStringString } from './types'
 import sqlInfo from './info'
 
+const countTotalRows = async (tableName: string) => {
+    const count = await config.mysqlConnexion().table(tableName).count()
+    const nRows = count[0]['count(*)']
+    return nRows as number
+}
+
 export const handleUpdateProhibitions = async (updated: any, tableName: string) => {
 
-    const countTotalRows = async () => {
-        const count = await config.mysqlConnexion().table(tableName).count()
-        return count[0]['count(*)'] as number
-    }
 
     const countWhereNull = async (column: string)=> {
         const c: any = await config.mysqlConnexion().table(tableName).whereNull(column).count('* as count')
@@ -25,7 +27,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
     }
 
 
-    const totalRows = await countTotalRows()
+    const totalRows = await countTotalRows(tableName)
 
     for (let key in updated){
         let prevCol = updated[key].old as string
@@ -59,13 +61,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
 
 export const handleAddProhibitions = async (added: TObjectStringString, tableName: string) => {
 
-    const countTotalRows = async () => {
-        const count = await config.mysqlConnexion().table(tableName).count()
-        const nRows = count[0]['count(*)']
-        return nRows
-    }
-
-    const totalRows = await countTotalRows()
+    const totalRows = await countTotalRows(tableName)
     for (const key in added){
         const col = added[key]
         if (sqlInfo(col).isNotNullable() && !sqlInfo(col).pullDefaultTo() && totalRows > 0){
