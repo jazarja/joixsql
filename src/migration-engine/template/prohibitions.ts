@@ -58,7 +58,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
     }
 }
 
-const handleAddProhibitions = async (added: TObjectStringString, tableName: string) => {
+export const handleAddProhibitions = async (added: TObjectStringString, tableName: string) => {
 
     const countTotalRows = async () => {
         const count = await config.mysqlConnexion().table(tableName).count()

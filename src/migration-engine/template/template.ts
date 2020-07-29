@@ -1,9 +1,9 @@
-import _ from 'lodash'
+import _, { add } from 'lodash'
 import { TObjectStringString } from './types'
 import actions from './actions'
 import sqlInfo from './info'
 import hasChanged from './changes'
-import { handleUpdateProhibitions } from './prohibitions'
+import { handleUpdateProhibitions, handleAddProhibitions } from './prohibitions'
 
 import { compare, replaceLast } from './parse'
 
@@ -33,6 +33,7 @@ const renderTemplates = async (oldTable: TObjectStringString, newTable: TObjectS
 
     if (enableCheck){
         await handleUpdateProhibitions(updated, tableName)
+        await handleAddProhibitions(added, tableName)
     }
 
     let actions = [
