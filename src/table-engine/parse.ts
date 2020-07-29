@@ -15,11 +15,11 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
     
     const detectMySQLNamingError = (key: string) => {
         if (MYSQL_RESERVED_WORDS_LIST.indexOf(key) != -1){
-            throw new Error(`You can't use ${key} as a table or column name. ${key} is a transact-SQL reserved word. More here: https://dev.mysql.com/doc/refman/8.0/en/keywords.html`)
+            throw new Error(`You can't use ${key} as a table or column name. ${key} is a transact-SQL reserved word. More details here: https://dev.mysql.com/doc/refman/8.0/en/keywords.html`)
         }
         const reg = /^[\w][\w_]*$/
         if (!reg.test(key)){
-            throw new Error(`Table and column name should be respecting this regex format: /^[A-Za-Z0-9][A-Za-Z0-9_]*$/`)
+            throw new Error(`Table and column name should be respecting this regex format: /^[A-Za-Z0-9][A-Za-Z0-9_]*$/ | examples: user_id, user1, user_1, user_ID_1, USER_ID`)
         }
     }
 
@@ -33,7 +33,7 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
     }
 
     if (countPrimary > 1)
-        throw new Error("Your schema contain many primary keys")
+        throw new Error(`Your table ${tableName} contains many primary keys`)
 }
 
 export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
