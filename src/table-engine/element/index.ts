@@ -151,6 +151,8 @@ export default class Element {
         if (this.is().primaryKey()){
             if (this.is().foreignKey())
                 throw new Error(`Key: ${this.key()} - Your schema can't contain a value that is a primary key and a foreign key`)
+            if (this.is().unique())
+                throw new Error(`Key: ${this.key()} - Your schema can't contain a value that is a primary key and a unique key`)
         }
     
         if (this.is().string()){

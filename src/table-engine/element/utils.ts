@@ -32,5 +32,6 @@ export const isValidDefaultValueFunction = (value: any) => {
         if (value instanceof forbiddenNativeClass[i] && !isFunction(value))
             return err(forbiddenNativeClass[i].name)
     }
-    return err(value)
+    if (!isFunction(value))
+        return err(value)
 }

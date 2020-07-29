@@ -19,11 +19,21 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         return ret[0][0]['COUNT(*)'] as number
     }
 
+    const countLessThan0 = async (column: string) => {
+        const c: any = await config.mysqlConnexion().table(tableName).where(column, '<', 0).count('* as count')
+        return c[0].count as number
+    }
+
+
     const totalRows = await countTotalRows()
 
     for (let key in updated){
         let prevCol = updated[key].old as string
         let nextCol = updated[key].new as string
+
+        if (sqlInfo(prevCol).type() != sqlInfo(nextCol).type() && totalRows > 0){
+            throw new Error(`Type change is not allowed in a non-empty table. column: ${key}, table: ${tableName}`)
+        }
 
         if (!sqlInfo(prevCol).isNotNullable() && sqlInfo(nextCol).isNotNullable()){
             const count = await countWhereNull(key)
@@ -37,6 +47,14 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
                 throw new Error(`There are '${nDuplicates}' different combinations of duplication in the column '${key}' of the '${tableName}' table. Before adding a UNIQUE index to this column, you need to remove manually all data duplication present in it.`)
             }
         }
+
+        if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
+            const count = await countLessThan0(key)
+            if (count > 0){
+                throw new Error(`There are '${count}' values below 0 in the column '${key}' of the '${tableName}' table. Please remove or update this rows before adding a unsigned type.`)
+            }
+        }
+
     }
 }
 

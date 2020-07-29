@@ -82,7 +82,6 @@ export default (column: TColumn) => {
         return m.toLowerCase().indexOf('increments') != -1
     }
 
-
     const type = () => {
         const methodName = method(true)
         if (methodName){
