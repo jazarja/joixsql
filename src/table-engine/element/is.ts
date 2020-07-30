@@ -39,7 +39,7 @@ export default class Is {
     double = () => this.flagExist() && this.flags().double === true
     dateFormatSet = () => this.flagExist() && !!this.flags().format
     dateUnix = () => this.dateFormatSet() && this.flags().format === 'unix'
-    enum = () => this.string() && !!this.allow()
+    enum = () => (this.string() || this.number()) && !!this.allow()
 
     ref = () => !!this.allow() && this.allow().length > 0 && !!Object.assign({}, ...this.allow()).ref
     precisionSet = () => !!_.find(this.rules(), {name: 'precision'})

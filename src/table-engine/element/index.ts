@@ -92,21 +92,20 @@ export default class Element {
             let defaultValue = this.get().defaultValue()
             let dvType = typeof defaultValue
             
-            const isPureDefaultValueForbidden = () => dvType !== 'boolean' && dvType !== 'string' && dvType != 'number' && !(defaultValue instanceof Date)
+            const isDefaultValueForbidden = () => dvType !== 'boolean' && dvType !== 'string' && dvType != 'number' && !(defaultValue instanceof Date)
             
-            if (isPureDefaultValueForbidden()){
+            if (isDefaultValueForbidden()){
                 const err = isValidDefaultValueFunction(defaultValue)
                 if (err)
                     throw err
                 defaultValue = defaultValue()
                 dvType = typeof defaultValue
-                if (isPureDefaultValueForbidden())
+                if (isDefaultValueForbidden())
                     throw errors.elementTypeUnsupported(this.key())
             }
 
             if (this.is().enum()){
                 const allows = this.get().allow()
-
                 if (allows.indexOf(defaultValue) == -1)
                     throw errors.enumHasWrongValue(this.key())
 

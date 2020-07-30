@@ -18,7 +18,7 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
         if (MYSQL_RESERVED_WORDS_LIST.indexOf(key) != -1){
             throw errors.reservedMySQLTransacKeyWord(key)
         }
-        const reg = /^[\w][\w_]*$/
+        const reg = /^[A-Za-z][\w_]*$/
         if (!reg.test(key)){
             throw errors.wrongColumnOrTableFormat(key)
         }
