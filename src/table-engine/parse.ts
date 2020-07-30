@@ -58,6 +58,7 @@ export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
             e.flags.populate = elem.flags().populate
             e.flags.noPopulate = elem.flags().noPopulate
             e.flags.group = elem.flags().group
+            e.flags.default = elem.flags().default
         }
         return e
     }

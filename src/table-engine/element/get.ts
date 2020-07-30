@@ -46,7 +46,11 @@ export default class Get {
         if (this.is().float()){
             const isUnsigned = this.is().strictlyPositive()
             const floatPrecision = this.element().get().floatPrecision() as IFloatPrecision
-            const max = parseInt(([] as string[]).fill('9', 0, floatPrecision.precision - floatPrecision.scale).join(''))
+
+            const maxEntire = parseInt(new Array(floatPrecision.precision - floatPrecision.scale).fill('9', 0, floatPrecision.precision - floatPrecision.scale).join(''))
+            const maxDecimal = parseFloat('0.' + new Array(floatPrecision.scale).fill('9', 0, floatPrecision.scale).join(''))
+            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatPrecision.scale))
+            
             return {
                 type: `FLOAT`,
                 maximum: max,

@@ -1,13 +1,24 @@
+import _ from 'lodash'
 import { config } from '../../../index'
 import { TObjectStringString } from './types'
 import sqlInfo from './info'
 import errors from './errors'
+import { string } from '@hapi/joi'
 
 const countTotalRows = async (tableName: string) => {
     const count = await config.mysqlConnexion().table(tableName).count()
     const nRows = count[0]['count(*)']
     return nRows as number
 }
+
+const fetchBy = async (tableName: string, where: any) => {
+    const result = await config.mysqlConnexion().table(tableName).where(where).first()
+    if (_.isObject(result)){
+        return result
+    }
+    return null
+}
+
 
 export const handleUpdateProhibitions = async (updated: any, tableName: string) => {
 
@@ -21,11 +32,20 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         return ret[0][0]['COUNT(*)'] as number
     }
 
+    const countGreaterThanLength = async (column: string, maxLength: number) => {
+        const ret = await config.mysqlConnexion().raw(`SELECT COUNT(*) FROM (SELECT ${column} FROM ${tableName} WHERE length(${column}) > ${maxLength}) as X`)
+        return ret[0][0]['COUNT(*)'] as number
+    }
+
     const countLessThan0 = async (column: string) => {
         const c: any = await config.mysqlConnexion().table(tableName).where(column, '<', 0).count('* as count')
         return c[0].count as number
     }
 
+    const countGreaterThan = async (column: string, max: number) => {
+        const c: any = await config.mysqlConnexion().table(tableName).where(column, '>', 0).count('* as count')
+        return c[0].count as number
+    }
 
     const totalRows = await countTotalRows(tableName)
 
@@ -34,26 +54,55 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         let prevCol = updated[key].old as string
         let nextCol = updated[key].new as string
 
+        const foreign = sqlInfo(nextCol).pullForeignKey()
+        const defaultTo = sqlInfo(nextCol).pullDefaultTo()
+        const stringMax = sqlInfo(nextCol).stringMax()
+        const floatSpecs = sqlInfo(nextCol).floatSpecs()
+
         if (sqlInfo(prevCol).type() != sqlInfo(nextCol).type() && totalRows > 0){
             throw errors.columnTypeChangeForbidden(key, tableName)
         }
 
-        if (!sqlInfo(prevCol).isNotNullable() && sqlInfo(nextCol).isNotNullable() && !sqlInfo(nextCol).pullDefaultTo()){
+        if (!sqlInfo(prevCol).isNotNullable() && sqlInfo(nextCol).isNotNullable() && !defaultTo){
             const count = await countWhereNull(key)
             if (count > 0)
-                errors.notNullBlocked(key, tableName, count)
+                throw errors.notNullBlocked(key, tableName, count)
         }
 
         if (!sqlInfo(prevCol).isUnique() && sqlInfo(nextCol).isUnique() && totalRows > 1){
             const nDuplicates = await countDuplicateValues(key)
             if (nDuplicates > 0)
-                errors.uniqueBlocked(key, tableName, nDuplicates)
+                throw errors.uniqueBlocked(key, tableName, nDuplicates)
         }
 
         if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
             const count = await countLessThan0(key)
             if (count > 0)
-                errors.unsignedBlocked(key, tableName, count)
+                throw errors.unsignedBlocked(key, tableName, count)
+        }
+
+        if (stringMax){
+            const res = await countGreaterThanLength(key, stringMax)
+            if (res > 0){
+                throw errors.stringMaxChangeBlocked(key, tableName, res, stringMax)
+            }
+        }
+
+        if (floatSpecs){
+            const maxEntire = parseInt(new Array(floatSpecs.precision - floatSpecs.scale).fill('9', 0, floatSpecs.precision - floatSpecs.scale).join(''))
+            const maxDecimal = parseFloat('0.' + new Array(floatSpecs.scale).fill('9', 0, floatSpecs.scale).join(''))
+            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatSpecs.scale))
+            const count = await countGreaterThan(key, max)
+            if (count > 0){
+                throw errors.floatMaxChangeBlocked(key, tableName, count, max)
+            }
+        }
+
+        if (foreign && !!defaultTo){
+            const res = await fetchBy(foreign.table, {[foreign.ref]: defaultTo})
+            if (res == null){
+                throw errors.foreignKeyDefaultValueDoesNotExist(key, tableName, foreign.table, defaultTo)
+            }
         }
     }
 }
@@ -63,9 +112,28 @@ export const handleAddProhibitions = async (added: TObjectStringString, tableNam
     const totalRows = await countTotalRows(tableName)
 
     for (const key in added){
-        
+
         const col = added[key]
-        if (sqlInfo(col).isNotNullable() && !sqlInfo(col).pullDefaultTo() && totalRows > 0)
+        const foreign = sqlInfo(col).pullForeignKey()
+        const defaultTo = sqlInfo(col).pullDefaultTo()
+        const floatSpecs = sqlInfo(col).floatSpecs()
+        
+        if (sqlInfo(col).isNotNullable() && !defaultTo && totalRows > 0)
             throw errors.notNullAddBlocked(key, tableName, totalRows)
+        
+        if (foreign && !!defaultTo){
+            const res = await fetchBy(foreign.table, {[foreign.ref]: defaultTo})
+            if (res == null){
+                throw errors.foreignKeyDefaultValueDoesNotExist(key, tableName, foreign.table, defaultTo)
+            }
+        }
+
+        if (floatSpecs){
+            const maxEntire = parseInt(new Array(floatSpecs.precision - floatSpecs.scale).fill('9', 0, floatSpecs.precision - floatSpecs.scale).join(''))
+            const maxDecimal = parseFloat('0.' + new Array(floatSpecs.scale).fill('9', 0, floatSpecs.scale).join(''))
+            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatSpecs.scale))
+        }
+
+
     }
 }

@@ -1,5 +1,6 @@
 import { TColumn } from './types'
 import { pullFullMethodFromColumn } from './parse'
+import { split } from 'lodash'
 
 const TYPE_METHOD =  ['increments', 'boolean', 'timestamp', 'dateTime', 'float', 'specificType', 'integer', 'enum', 'string', 'text']
 
@@ -82,6 +83,30 @@ export default (column: TColumn) => {
         return m.toLowerCase().indexOf('increments') != -1
     }
 
+    const stringMax = () => {
+        if (type() === 'string'){
+            const m = method(false)
+            if (m){
+                const splited = m.split(',')
+                if (splited.length == 2)
+                    return parseInt(splited[1].slice(0, splited[1].length - 1))
+            }
+        }
+        return null
+    }
+    
+    const floatSpecs = () => {
+        if (type() === 'float'){
+            const m = method(false)
+            if (m){
+                const splited = m.split(',')
+                if (splited.length == 3)
+                    return {precision: parseInt(splited[1]), scale: parseInt(splited[2].slice(0, splited[2].length - 1))}
+            }
+        }
+        return null
+    }
+
     const type = () => {
         const methodName = method(true)
         if (methodName){
@@ -109,6 +134,8 @@ export default (column: TColumn) => {
         pullDefaultTo,
         method,
         key,
+        stringMax,
+        floatSpecs,
         pullForeignKey,
         pullPrimary
     }
