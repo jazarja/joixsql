@@ -88,11 +88,17 @@ export default class Element {
     }
 
     public defaultValueErrorScanner = () => {
+
+        const isString = (type: string) => type === 'string'
+        const isBool = (type: string) => type === 'boolean'
+        const isNumber = (type: string) => type === 'number' || type === 'bigint'
+        const isDate = (value: any) => value instanceof Date
+
         if (this.is().defaultValue()){
             let defaultValue = this.get().defaultValue()
             let dvType = typeof defaultValue
             
-            const isDefaultValueForbidden = () => dvType !== 'boolean' && dvType !== 'string' && dvType != 'number' && !(defaultValue instanceof Date)
+            const isDefaultValueForbidden = () => !isBool(dvType) && !isString(dvType) && !isNumber(dvType) && !isDate(defaultValue)
             
             if (isDefaultValueForbidden()){
                 const err = isValidDefaultValueFunction(defaultValue)
@@ -110,17 +116,17 @@ export default class Element {
                     throw errors.enumHasWrongValue(this.key())
 
                 for (const e of allows){
-                    if ((this.is().number() && typeof e !== 'number') || 
-                        (this.is().string() && typeof e !== 'string') || 
-                        (this.is().dateFormatSet() && typeof e !== 'string' && !(e instanceof Date))){
+                    if ((this.is().number() && !isNumber(typeof e)) || 
+                        (this.is().string() && !isString(typeof e)) || 
+                        (this.is().dateFormatSet() && !isString(typeof e) && !isDate(e))) {
                         throw errors.enumHasWrongType(this.key())
                     }
                 }
 
             } else {
-                if ((this.is().string() && dvType !== 'string') ||
-                    (this.is().number() && dvType !== 'number') ||
-                    (this.is().date() && dvType !== 'string' && !(defaultValue instanceof Date))){
+                if ((this.is().string() && !isString(dvType)) ||
+                    (this.is().number() && !isNumber(dvType)) ||
+                    (this.is().date() && !isString(dvType) && !isDate(defaultValue))){
                     throw errors.defaultValueHasWrongType(this.key())
                 }
             }
@@ -134,12 +140,16 @@ export default class Element {
             }
     
             if (this.is().number()){
+
+                if (isNaN(defaultValue) === true)
+                    throw errors.forbiddenDefaultValue(defaultValue, this.key())
+
                 const v = this.get().numberValueAndType()
                 if (!v)
                     throw errors.internalErrorWithDefaultValueAsNumber(this.key())
-                if (v.maximum > defaultValue)
+                if (v.maximum < defaultValue)
                     throw errors.defaultValueIsGreaterThanMaxType(this.key(), v.type)
-                if (v.minimum < defaultValue)
+                if (v.minimum > defaultValue)
                     throw errors.defaultValueIsLessThanMinType(this.key(), v.type)
             }
         }

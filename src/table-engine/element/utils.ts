@@ -1,3 +1,5 @@
+import errors from '../errors'
+
 export const toValidMySQLDateString = (d: Date): string => {
     const month = d.getMonth() + 1
     const day = d.getDate()
@@ -26,12 +28,11 @@ export const isValidDefaultValueFunction = (value: any) => {
         String,
         Symbol
     ]
-    const err = (thing: any) => new Error(`${thing} is not accepted as default value`)
     const isFunction = (value: any) => value && (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function);
     for (let i = 0; i < forbiddenNativeClass.length; i++){
         if (value instanceof forbiddenNativeClass[i] && !isFunction(value))
-            return err(forbiddenNativeClass[i].name)
+            return errors.typeNotAcceptedForDefaultValue(forbiddenNativeClass[i].name)
     }
     if (!isFunction(value))
-        return err(value)
+        return errors.typeNotAcceptedForDefaultValue(value)
 }

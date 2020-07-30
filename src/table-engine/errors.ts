@@ -22,8 +22,9 @@ export default {
     primaryKeyIsUnique: (column: string) => new Error(`Column: ${column} - Your schema can't contain a value that is a primary key and a unique key`),
     textDefaultValueForbidden: (column: string) => new Error(`Column: ${column} - A TEXT type can't have a default value, you need to set a column size`),
     timestampIsUnsupported: (column: string) => new Error(`Column: ${column} - Timestamp type is not supported.`),
-    uniqueStringShouldHaveAMaxLengthSet: (column: string) => new Error(`Column: ${column} - The maximum length of a string with a UNIQUE constraint should be defined. The maximum size is 65535`)
-    
+    uniqueStringShouldHaveAMaxLengthSet: (column: string) => new Error(`Column: ${column} - The maximum length of a string with a UNIQUE constraint should be defined. The maximum size is 65535`),
+    typeNotAcceptedForDefaultValue: (type: any) => new Error(`${type} is not accepted as default value`),
+    forbiddenDefaultValue: (value: any, column: string) => new Error(`${value} is not accepted as default value for the column ${column}`),
     
     
 
