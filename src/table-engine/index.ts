@@ -1,17 +1,17 @@
 import { Schema } from '@hapi/joi'
 import _ from 'lodash'
 import knex, { SchemaBuilder } from 'knex'
-import { config } from '../../index'
+import { config, MigrationManager } from '../../index'
 import { IAnalyze, IForeign } from './types'
 import Element from './element'
-import { Color } from '../migration-engine/managers/utils'
+import { Color } from '../utils'
 import {
     detectAndTriggerSchemaErrors,
     parseSupportedTypes
 } from './parse'
 import { IModel } from '../ecosystem'
-import { MigrationManager } from '../..'
 
+import errors from './errors'
 
 const analyzeSchema = (schema: Schema): IAnalyze => {
     detectAndTriggerSchemaErrors(schema, 'empty')
@@ -149,7 +149,7 @@ export const buildAllFromEcosystem = async () => {
     const created: IModel[] = []
     const ecosystem = config.ecosystem()
     if (!ecosystem)
-        throw new Error("No ecosystem set")
+        throw errors.noEcosystem()
 
     const log = (...v: any) => config.isLogEnabled() && console.log(...v)
 
@@ -218,9 +218,8 @@ export const buildAllFromEcosystem = async () => {
 
 const dropAllFromEcosystem = async () => {
     const ecosystem = config.ecosystem()
-    if (!ecosystem){
-        throw new Error("No ecosystem set")
-    }
+    if (!ecosystem)
+        throw errors.noEcosystem()
     
     const deleteAll = async () => {
         const deleted: IModel[] = []
@@ -251,9 +250,9 @@ const dropAllFromEcosystem = async () => {
 
 export const sortTableToCreate = () => {
     const ecosystem = config.ecosystem()
-    if (!ecosystem){
-        return []
-    }
+    if (!ecosystem)
+        throw errors.noEcosystem()
+    
     const schemaList = ecosystem.list()
     let tablesToCreate = []
     let tablesWithFK = []
@@ -287,7 +286,7 @@ export const sortTableToCreate = () => {
     }
 
     if (tablesWithFK.length > 0)
-        throw new Error(`Table${tablesWithFK.length > 1 ? 's' : ''}: ${tablesWithFK.join(', ')} not created because of crossed foreign keys`)
+        throw errors.crossedForeignKeys(tablesWithFK)
     
     return tablesToCreate
 }

@@ -8,6 +8,7 @@ import { LIST_SUPPORTED_TYPES } from './mysql/types'
 import Ecosystem from '../ecosystem'
 
 import MYSQL_RESERVED_WORDS_LIST from '../../mysql-reserved-words'
+import errors from './errors'
 
 export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) => {
     const described = schema.describe().keys
@@ -15,11 +16,11 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
     
     const detectMySQLNamingError = (key: string) => {
         if (MYSQL_RESERVED_WORDS_LIST.indexOf(key) != -1){
-            throw new Error(`You can't use ${key} as a table or column name. ${key} is a transact-SQL reserved word. More details here: https://dev.mysql.com/doc/refman/8.0/en/keywords.html`)
+            throw errors.reservedMySQLTransacKeyWord(key)
         }
         const reg = /^[\w][\w_]*$/
         if (!reg.test(key)){
-            throw new Error(`Table and column name should be respecting this regex format: /^[A-Za-Z0-9][A-Za-Z0-9_]*$/ | examples: user_id, user1, user_1, user_ID_1, USER_ID`)
+            throw errors.wrongColumnOrTableFormat(key)
         }
     }
 
@@ -33,7 +34,7 @@ export const detectAndTriggerSchemaErrors = (schema: Schema, tableName: string) 
     }
 
     if (countPrimary > 1)
-        throw new Error(`Your table ${tableName} contains many primary keys`)
+        throw errors.manyPrimaryKey(tableName)
 }
 
 export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {

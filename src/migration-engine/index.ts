@@ -9,7 +9,7 @@ import { config } from '../../index'
 
 import { IUpdated } from './template/types'
 import { IModel } from '../ecosystem'
-import { Color } from './managers/utils'
+import { Color } from '../utils'
 
 export class Manager {
     
@@ -113,6 +113,15 @@ export class Manager {
             }
         }
 
+        const handleMigrationError = (e: any) => {
+            config.isRemovingMigrationOnErrorEnabled() && migrationFilesPath.map((fp: string) => fs.unlinkSync(fp))
+            console.log(`\nMigration ${Color.FgRed}failed${Color.Reset}.`)
+            console.log(`\ni) Migration files removing on error is ${config.isRemovingMigrationOnErrorEnabled() ? Color.FgGreen : Color.FgRed}${config.isRemovingMigrationOnErrorEnabled() ? 'enabled' : 'disabled'}${Color.Reset}.`)
+            config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually fix the error if it comes from a SQL data conflict with your new schema constraints, before re-running the program.`)
+            !config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually remove the migration files causing the error before re-running the program.`)
+            throw new Error(e)
+        }
+
         const migrateAll = async () => {
             if (isMigrationAllowed()){
                 const startTime = new Date().getTime()
@@ -125,16 +134,10 @@ export class Manager {
                     log(`Table${listTableUpdated().length > 1 ? 's' : ''} migration ${Color.FgGreen}succeed${Color.Reset} in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
                     log('\n-------------------------------------------\n')
                 } catch (e){
-                    config.isRemovingMigrationOnErrorEnabled() && migrationFilesPath.map((fp: string) => fs.unlinkSync(fp))
-                    console.log(`\nMigration ${Color.FgRed}failed${Color.Reset}.`)
-                    console.log(`\ni) Migration files removing on error is ${config.isRemovingMigrationOnErrorEnabled() ? Color.FgGreen : Color.FgRed}${config.isRemovingMigrationOnErrorEnabled() ? 'enabled' : 'disabled'}${Color.Reset}.`)
-                    config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually fix the error if it comes from a SQL data conflict with your new schema constraints, before re-running the program.`)
-                    !config.isRemovingMigrationOnErrorEnabled() && console.log(`Information: You need to manually remove the migration files causing the error before re-running the program.`)
-                    throw new Error(e)
+                    handleMigrationError(e)
                 }
 
             } else if (isMigrationNeedsConfirmation()) {
-
                 log('\n-------------------------------------------\n')
                 printCriticalConfirmationMessage()
                 log('\n-------------------------------------------\n')
