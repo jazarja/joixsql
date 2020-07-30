@@ -79,9 +79,8 @@ export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
         return new Element(newElemObject, key)
     }
 
-    if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1){
-        throw new Error(`${elem.type()} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`)  
-    }
+    if (LIST_SUPPORTED_TYPES.indexOf(elem.type()) == -1)
+        throw errors.unsupportedType(elem.type())
     
     return elem
 }
