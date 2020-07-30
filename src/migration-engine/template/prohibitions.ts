@@ -1,6 +1,7 @@
 import { config } from '../../..'
 import { TObjectStringString } from './types'
 import sqlInfo from './info'
+import errors from './errors'
 
 const countTotalRows = async (tableName: string) => {
     const count = await config.mysqlConnexion().table(tableName).count()
@@ -9,7 +10,6 @@ const countTotalRows = async (tableName: string) => {
 }
 
 export const handleUpdateProhibitions = async (updated: any, tableName: string) => {
-
 
     const countWhereNull = async (column: string)=> {
         const c: any = await config.mysqlConnexion().table(tableName).whereNull(column).count('* as count')
@@ -30,31 +30,30 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
     const totalRows = await countTotalRows(tableName)
 
     for (let key in updated){
+
         let prevCol = updated[key].old as string
         let nextCol = updated[key].new as string
 
         if (sqlInfo(prevCol).type() != sqlInfo(nextCol).type() && totalRows > 0){
-            throw new Error(`Type change is not allowed in a non-empty table. column: ${key}, table: ${tableName}`)
+            throw errors.columnTypeChangeForbidden(key, tableName)
         }
 
         if (!sqlInfo(prevCol).isNotNullable() && sqlInfo(nextCol).isNotNullable() && !sqlInfo(nextCol).pullDefaultTo()){
             const count = await countWhereNull(key)
             if (count > 0)
-                throw new Error(`You can't update the column '${key}' to a not nullable one (\`required()\`)because it contains '${count}' rows with a NULL value. Please remove manually these NULL rows first, or set a default value. (\`defaultTo()\`)`)
+                errors.notNullBlocked(key, tableName, count)
         }
 
         if (!sqlInfo(prevCol).isUnique() && sqlInfo(nextCol).isUnique() && totalRows > 1){
             const nDuplicates = await countDuplicateValues(key)
-            if (nDuplicates > 0){
-                throw new Error(`There are '${nDuplicates}' different combinations of duplication in the column '${key}' of the '${tableName}' table. Before adding a UNIQUE index (\`unique()\`) to this column, you need to remove manually all data duplication present in it.`)
-            }
+            if (nDuplicates > 0)
+                errors.uniqueBlocked(key, tableName, nDuplicates)
         }
 
         if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
             const count = await countLessThan0(key)
-            if (count > 0){
-                throw new Error(`There are '${count}' values below 0 in the column '${key}' of the '${tableName}' table. Please remove or update this rows before adding a unsigned type. (\`positive()\`)`)
-            }
+            if (count > 0)
+                errors.unsignedBlocked(key, tableName, count)
         }
     }
 }
@@ -62,10 +61,11 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
 export const handleAddProhibitions = async (added: TObjectStringString, tableName: string) => {
 
     const totalRows = await countTotalRows(tableName)
+
     for (const key in added){
+        
         const col = added[key]
-        if (sqlInfo(col).isNotNullable() && !sqlInfo(col).pullDefaultTo() && totalRows > 0){
-            throw new Error(`You defined the column '${key}' of the table '${tableName}' as NOT NULLABLE (\`required()\`) but has no DEFAULT VALUE (\`defaultTo\`) or existing value in the ${totalRows} present rows.`)
-        }
+        if (sqlInfo(col).isNotNullable() && !sqlInfo(col).pullDefaultTo() && totalRows > 0)
+            throw errors.notNullAddBlocked(key, tableName, totalRows)
     }
 }

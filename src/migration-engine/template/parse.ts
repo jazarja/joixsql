@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { TColumn, TObjectStringString, IUpdated, TObjectUpdated } from './types'
 import SQLInfo from './info'
+import errors from './errors'
 
 export const compare = (oldTable: TObjectStringString, newTable: TObjectStringString) => {
     const deleted: TObjectStringString = {}
@@ -54,7 +55,7 @@ export const tableToJSON = (table: string) => {
     for (let i = 0; i < columns.length; i++){
        const key = SQLInfo(columns[i]).key()
         if (!key)
-            throw new Error(`error from tableToJSON: column key not detected on column line ${i}.`)
+            throw errors.noKeyInColumn(i)
         ret[key] = columns[i]
     }
     return ret
