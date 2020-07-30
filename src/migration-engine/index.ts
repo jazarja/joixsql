@@ -3,7 +3,6 @@ import fs from 'fs'
 import schema from './managers/schema'
 import migration from './managers/migration'
 import confirmation from './managers/confirmation'
-import errors from './managers/errors'
 
 import { config } from '../../index'
 

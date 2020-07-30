@@ -1,4 +1,4 @@
-import { config } from '../../..'
+import { config } from '../../../index'
 import { TObjectStringString } from './types'
 import sqlInfo from './info'
 import errors from './errors'
