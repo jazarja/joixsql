@@ -3,7 +3,6 @@ import { config } from '../../../index'
 import { TObjectStringString } from './types'
 import sqlInfo from './info'
 import errors from './errors'
-import { string } from '@hapi/joi'
 
 const countTotalRows = async (tableName: string) => {
     const count = await config.mysqlConnexion().table(tableName).count()
@@ -47,6 +46,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         return c[0].count as number
     }
 
+
     const totalRows = await countTotalRows(tableName)
 
     for (let key in updated){
@@ -58,29 +58,45 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         const defaultTo = sqlInfo(nextCol).pullDefaultTo()
         const stringMax = sqlInfo(nextCol).stringMax()
         const floatSpecs = sqlInfo(nextCol).floatSpecs()
+        const primary = sqlInfo(nextCol).pullPrimary()
+    
 
+        if (!sqlInfo(prevCol).pullPrimary() && primary){
+            const countNull = await countWhereNull(key)
+            if (countNull > 0)
+                throw errors.primaryNullBlocked(key, tableName, countNull)
+            const countDup = await countDuplicateValues(key)
+            if (countDup > 0)
+                throw errors.primaryDuplicatesBlocked(key, tableName, countDup)
+        }
+
+        //HAS CHANGED OF TYPE
         if (sqlInfo(prevCol).type() != sqlInfo(nextCol).type() && totalRows > 0){
             throw errors.columnTypeChangeForbidden(key, tableName)
         }
 
+        //WAS NOT NOT-NULLABLE and IS NOT-NULLABLE NOW | WITHOUT DEFAULT VALUE
         if (!sqlInfo(prevCol).isNotNullable() && sqlInfo(nextCol).isNotNullable() && !defaultTo){
             const count = await countWhereNull(key)
             if (count > 0)
                 throw errors.notNullBlocked(key, tableName, count)
         }
 
+        //Was NOT and UNIQUE and is UNIQUE NOW
         if (!sqlInfo(prevCol).isUnique() && sqlInfo(nextCol).isUnique() && totalRows > 1){
             const nDuplicates = await countDuplicateValues(key)
             if (nDuplicates > 0)
                 throw errors.uniqueBlocked(key, tableName, nDuplicates)
         }
 
-        if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
-            const count = await countLessThan0(key)
-            if (count > 0)
-                throw errors.unsignedBlocked(key, tableName, count)
-        }
+        /* TO ACTIVATE WHEN TYPE CHANGE WILL BE ALLOWED */
+        // if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
+        //     const count = await countLessThan0(key)
+        //     if (count > 0)
+        //         throw errors.unsignedBlocked(key, tableName, count)
+        // }
 
+        //IF A STRING WITH A DEFINED MAX
         if (stringMax){
             const res = await countGreaterThanLength(key, stringMax)
             if (res > 0){
@@ -88,6 +104,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
             }
         }
 
+        //IF A FLOAT
         if (floatSpecs){
             const maxEntire = parseInt(new Array(floatSpecs.precision - floatSpecs.scale).fill('9', 0, floatSpecs.precision - floatSpecs.scale).join(''))
             const maxDecimal = parseFloat('0.' + new Array(floatSpecs.scale).fill('9', 0, floatSpecs.scale).join(''))
@@ -98,6 +115,7 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
             }
         }
 
+        //IF A FOREIGN KEY WITH A DEFAULT VALUE
         if (foreign && !!defaultTo){
             const res = await fetchBy(foreign.table, {[foreign.ref]: defaultTo})
             if (res == null){
@@ -116,24 +134,17 @@ export const handleAddProhibitions = async (added: TObjectStringString, tableNam
         const col = added[key]
         const foreign = sqlInfo(col).pullForeignKey()
         const defaultTo = sqlInfo(col).pullDefaultTo()
-        const floatSpecs = sqlInfo(col).floatSpecs()
         
+        //IF NOT NULLABLE WITHOUT DEFAULT VALUE IN A NON-EMPTY TABLE
         if (sqlInfo(col).isNotNullable() && !defaultTo && totalRows > 0)
             throw errors.notNullAddBlocked(key, tableName, totalRows)
         
+        //IF FOREIGN WITH A DEFAULT VALUE
         if (foreign && !!defaultTo){
             const res = await fetchBy(foreign.table, {[foreign.ref]: defaultTo})
             if (res == null){
                 throw errors.foreignKeyDefaultValueDoesNotExist(key, tableName, foreign.table, defaultTo)
             }
         }
-
-        if (floatSpecs){
-            const maxEntire = parseInt(new Array(floatSpecs.precision - floatSpecs.scale).fill('9', 0, floatSpecs.precision - floatSpecs.scale).join(''))
-            const maxDecimal = parseFloat('0.' + new Array(floatSpecs.scale).fill('9', 0, floatSpecs.scale).join(''))
-            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatSpecs.scale))
-        }
-
-
     }
 }

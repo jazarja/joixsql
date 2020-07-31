@@ -7,5 +7,7 @@ export default {
     notNullAddBlocked: (column: string, table: string, count: number) => new Error(`You defined the column '${column}' of the table '${table}' as NOT NULLABLE (\`required()\`) but has no DEFAULT VALUE (\`default\`) or existing value in the ${count} present rows.`),
     foreignKeyDefaultValueDoesNotExist: (column: string, table: string, tableDest: string, dv: string) => new Error(`The default value: ${dv} of your foreign key '${column}' of the table '${table}' doesn't exist in the table ${tableDest}.`),
     stringMaxChangeBlocked: (column: string, table: string, count: number, max: number) => new Error(`There are ${count} strings in the column: ${column} of ${table} that contain a length bigger than the maximum length set in your schema: ${max}`),
-    floatMaxChangeBlocked: (column: string, table: string, count: number, max: number) => new Error(`There are ${count} float values in the column ${column} of ${table} that contain a value bigger than the maximum allowed in your schema ${max} `)
+    floatMaxChangeBlocked: (column: string, table: string, count: number, max: number) => new Error(`There are ${count} float values in the column ${column} of ${table} that contain a value bigger than the maximum allowed in your schema ${max} `),
+    primaryNullBlocked: (column: string, table: string, count: number) => new Error(`You defined the column '${column}' of the table '${table}' as a primary key but this column contains ${count} rows assigned to NULL.`),
+    primaryDuplicatesBlocked: (column: string, table: string, count: number) => new Error(`You defined the column '${column}' of the table '${table}' as a primary key but this column contains ${count} rows with different combinations of duplication.`),
 }

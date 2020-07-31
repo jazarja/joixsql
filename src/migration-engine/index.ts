@@ -14,7 +14,6 @@ export class Manager {
     
     schema = () => schema(this)
     migration = () => migration(this)
-    // errors = () => errors()
     confirmation = () => confirmation()
 
     removeAllHistory = (tableName: string) => {

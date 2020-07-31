@@ -25,7 +25,7 @@ export default class Config {
         criticalCode: null,
         enableLog: true,
         enableCriticalConfirmation: true,
-        enableMigrationRemovingOnError: false,
+        enableMigrationRemovingOnError: true,
         ecosystem: null
     }
 
