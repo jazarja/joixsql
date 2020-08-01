@@ -172,10 +172,10 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         if (changed.foreignKeySettings()){
             if (prevForeign && nextForeign){
                 executionList.unshift(actions.foreign().drop(key))
-                executionList.push(actions.foreign().set(key, tableName, nextForeign?.ref as string, nextCol))
+                executionList.push(actions.foreign().set(nextCol))
             
             } else if (!prevForeign && nextForeign)
-                executionList.push(actions.foreign().set(key, tableName, nextForeign?.ref as string, nextCol))
+                executionList.push(actions.foreign().set(nextCol))
               else if (prevForeign && !nextForeign)
                 executionList.unshift(actions.foreign().drop(key))
 

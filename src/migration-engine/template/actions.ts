@@ -73,8 +73,7 @@ const foreign = () => {
     const setOnDeleteCascade = () => `.${methods.onDelete}('CASCADE')`
     const setOnUpdateCascade = () => `.${methods.onUpdate}('CASCADE')`
 
-    const setCascadeIfRequired = (col: TColumn) => {
-        const f = sqlInfo(col).pullForeignKey()
+    const setCascadeIfRequired = (f: any) => {
         if (!f)
             return
         return  `${f.isDelCascade ? setOnDeleteCascade() : ''}${f.isUpdCascade ? setOnUpdateCascade() : ''}`
@@ -87,7 +86,13 @@ const foreign = () => {
         },
         clear: (col: TColumn) => clearMethods(col, methods),
         drop: (key: string) => `t.${methods.drop}('${key}');\n`,
-        set: (key: string, tableName: string, ref: string, col: TColumn) => set(key) + setReferences(`'${ref}'`) + setInTable(`'${tableName}'`) + setCascadeIfRequired(col) + ';\n'
+        set: (col: TColumn) => {
+            const key = sqlInfo(col).key()
+            const f = sqlInfo(col).pullForeignKey()
+            if (!f || !key)
+                throw new Error('internal error.')
+            return set(key) + setReferences(`'${f.ref}'`) + setInTable(`'${f.table}'`) + setCascadeIfRequired(f) + ';\n'
+        }
     }
 }
 
