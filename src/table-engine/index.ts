@@ -18,6 +18,7 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
     const ret: IAnalyze = {
         primary_key: null,
         foreign_keys: [],
+        unique_keys: [],
         all_keys: [],
         populate: [],
         refs: [],
@@ -39,6 +40,10 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
             })
         }
         
+        if (elem.is().unique()){
+            ret.unique_keys.push(key)
+        }
+
         if (elem.is().primaryKey()){
             ret.primary_key = key
         }

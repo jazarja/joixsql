@@ -12,6 +12,7 @@ interface ITableEngine {
 interface IAnalyze {
     primary_key: string | null
     foreign_keys: Array<IForeign>
+    unique_keys: Array<string>
     populate: Array<IPopulate>
     all_keys: Array<string>
     refs: Array<IRef>
