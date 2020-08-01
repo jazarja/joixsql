@@ -1,6 +1,6 @@
 {
-  "name": "joi-to-sql",
-  "version": "1.0.3",
+  "name": "joixsql",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,15 +13,15 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Fantasim/joi-to-sql.git"
+    "url": "git+https://github.com/arysociety/joixsql.git"
   },
   "bugs": {
-    "url": "https://github.com/Fantasim/joi-to-sql/issues"
+    "url": "https://github.com/arysociety/joixsql/issues"
   },
   "files": [
     "dist/**"
   ],
-  "homepage": "https://github.com/Fantasim/joi-to-sql#readme",
+  "homepage": "https://github.com/arysociety/joixsql#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "fs": "^0.0.1-security",
