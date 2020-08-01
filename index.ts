@@ -16,7 +16,7 @@ import Config, { IConfig} from './src/config'
 
 const config = new Config()
 
-module.exports = {
+export default {
     JoiMySQLExtension,
     Joi,
     TableEngine,
