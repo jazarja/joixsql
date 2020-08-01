@@ -1,0 +1,143 @@
+import { TColumn } from './types'
+import { pullFullMethodFromColumn } from './parse'
+import { split } from 'lodash'
+
+const TYPE_METHOD =  ['increments', 'boolean', 'timestamp', 'dateTime', 'float', 'specificType', 'integer', 'enum', 'string', 'text']
+
+export default (column: TColumn) => {
+
+    const pullPrimary = () => {
+        const ret: any = {}
+        ret.autoIncrement = !!pullFullMethodFromColumn('increments', column)
+        ret.primary = !!pullFullMethodFromColumn('primary', column)
+        if (!ret.autoIncrement && !ret.primary)
+            return undefined
+        return ret
+    }
+    
+    const pullForeignKey = () => {
+        const ref = pullFullMethodFromColumn('references', column, true)
+        const table = pullFullMethodFromColumn('inTable', column, true)
+        const onDelete = pullFullMethodFromColumn('onDelete', column)
+        const onUpdate = pullFullMethodFromColumn('onUpdate', column)
+        
+        if (!ref || !table)
+            return undefined
+        return {
+            ref: ref.substring(1, ref.length - 1),
+            table: table.substring(1, table.length - 1),
+            isDelCascade: !!onDelete,
+            isUpdCascade: !!onUpdate
+        }
+    }
+
+    const key = () => {
+        for (const m of TYPE_METHOD){
+            const v = pullFullMethodFromColumn(m, column, true)
+            if (v && v.indexOf(',') == -1){
+                return v.substring(1,v.length -1)
+            } else if (v){
+                const keyUnformated = v.split(',')[0]
+                return keyUnformated.substring(1, keyUnformated.length-1)
+            }
+        }
+        return undefined
+    }
+
+    const method = (nameOnly: boolean = true) => {
+        for (const m of TYPE_METHOD){
+            const v = pullFullMethodFromColumn(m, column)
+            if (v)
+                return nameOnly ? m : v
+        }
+        return undefined
+    }
+
+    const pullDefaultTo = () => {
+        const defVal = pullFullMethodFromColumn('defaultTo', column, true)
+        if (!defVal)
+            return undefined
+        if (defVal[0] === '\'' && defVal[defVal.length - 1] === '\''){
+            return defVal.substring(1, defVal.length - 1)
+        }
+        return defVal
+    }
+
+    const isUnique = () => !!pullFullMethodFromColumn('unique', column)
+    const isNotNullable = () => !!pullFullMethodFromColumn('notNullable', column)
+    const isDate = () => type() === 'timestamp' || type() === 'dateTime'
+    const isTimestampType = () => type() === 'timestamp'
+    const isDateTimeType = () => type() === 'dateTime'
+
+
+    const isUnsigned = () => !!pullFullMethodFromColumn('unsigned', column)
+    const isDeepUnsigned = () => {
+        if (isUnsigned())
+            return true
+        const m = method(false) as string
+        return m.toLowerCase().indexOf('unsigned') != -1 || m.toLowerCase().indexOf('increments') != -1
+    }
+
+    const isAutoIncrements = () => {
+        const m = method(false) as string
+        return m.toLowerCase().indexOf('increments') != -1
+    }
+
+    const stringMax = () => {
+        if (type() === 'string'){
+            const m = method(false)
+            if (m){
+                const splited = m.split(',')
+                if (splited.length == 2)
+                    return parseInt(splited[1].slice(0, splited[1].length - 1))
+            }
+        }
+        return null
+    }
+    
+    const floatSpecs = () => {
+        if (type() === 'float'){
+            const m = method(false)
+            if (m){
+                const splited = m.split(',')
+                if (splited.length == 3)
+                    return {precision: parseInt(splited[1]), scale: parseInt(splited[2].slice(0, splited[2].length - 1))}
+            }
+        }
+        return null
+    }
+
+    const type = () => {
+        const methodName = method(true)
+        if (methodName){
+            if (methodName === 'increments')
+                return 'int unsigned'
+            else if (methodName === 'specificType'){
+                const value = (pullFullMethodFromColumn('specificType', column, true) as string).split(',')[1].trim()
+                return value.substring(1, value.length - 1)
+            } else {
+                return methodName
+            }
+        }
+    }
+
+    return {
+        type,
+        isDeepUnsigned,
+        isUnsigned,
+        isDate,
+        isTimestampType,
+        isDateTimeType,
+        isAutoIncrements,
+        isUnique,
+        isNotNullable,
+        pullDefaultTo,
+        method,
+        key,
+        stringMax,
+        floatSpecs,
+        pullForeignKey,
+        pullPrimary
+    }
+
+}
