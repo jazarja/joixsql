@@ -1,11 +1,11 @@
 {
   "name": "joixsql",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
+    "build": "rm -rf dist && tsc",
     "clean": "rm -rf dist",
     "test": "mocha -r ts-node/register tests/index.ts --timeout 20000"
   },
@@ -28,11 +28,11 @@
     "js-beautify": "^1.11.0",
     "knex": "^0.21.1",
     "lodash": "^4.17.15",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "@types/hapi__joi": "^17.1.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
-    "@types/hapi__joi": "^17.1.2",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.155",
     "@types/mocha": "^7.0.2",
