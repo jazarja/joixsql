@@ -25,9 +25,16 @@ export default () => {
 
     const deleteFile = () => fs.unlinkSync(path())
 
-    const getFileCode = (): ICode => JSON.parse(fs.readFileSync(path(), 'utf-8')) 
+    const isFileConfirmationExist = () => fs.existsSync(path())
+    
+    const getFileCode = (): ICode => {
+        if (isFileConfirmationExist())
+            return JSON.parse(fs.readFileSync(path(), 'utf-8')) 
+        return { code: 'FILE_NOT_EXISTING', expiration: (new Date().getTime() / 1000) - 1}
+    }
 
     const isExpired = () => getFileCode().expiration < (new Date().getTime() / 1000)
+
     const isCorrectCode = (code: string) => getFileCode().code === code
 
     const isValid = (code: string) => !isExpired() && isCorrectCode(code)

@@ -83,12 +83,10 @@ export class Manager {
         }
 
         const isMigrationNeedsConfirmation = () => {
-            if (listTableUpdated().length > 0 && 
-                !_.isEmpty(dels) && 
+            if (!_.isEmpty(dels) && 
                 config.isCriticalConfirmationEnabled()) {
-                    if (config.criticalCode() != null){
-                        return !this.confirmation().isValid(config.criticalCode() as string)
-                    } 
+                    if (config.criticalCode() != null)
+                        return !this.confirmation().isValid(config.criticalCode() || '')
                     return true
                 }
                 return false
@@ -126,9 +124,15 @@ export class Manager {
                 log('\n-------------------------------------------\n')
                 printMigrationMessage()
                 try {
+                    //Generate the the migration files
+                    for (let m of affecteds)
+                        await generateTemplate(m)
+                    //Migrate with each migration files created
                     await this.migration().migrateAll()
+                    //Create all the new schemas.
                     for (let m of affecteds)
                         this.schema().create(m)
+
                     log(`Table${listTableUpdated().length > 1 ? 's' : ''} migration ${Color.FgGreen}succeed${Color.Reset} in ${ ((new Date().getTime() - startTime) / 1000).toFixed(3)} seconds. ✅`)
                     log('\n-------------------------------------------\n')
                 } catch (e){
@@ -152,7 +156,6 @@ export class Manager {
                 fillChanges(upds, changes.updated, m.tableName)
                 fillChanges(adds, changes.added, m.tableName)
                 fillRenamed(rens, changes.renamed, m.tableName)
-                await generateTemplate(m)
             }
         }
         await migrateAll()
