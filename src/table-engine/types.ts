@@ -1,5 +1,4 @@
 import { Schema } from '@hapi/joi'
-import { SchemaBuilder } from 'knex'
 
 interface ITableEngine {
     analyzeSchema(schema: Schema): IAnalyze

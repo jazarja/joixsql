@@ -135,10 +135,12 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     detectAndTriggerSchemaErrors(schema, tableName) 
     const described = schema.describe().keys
     
-    return config.mysqlConnexion().schema.createTable(tableName, (table: knex.TableBuilder) => {
+    return config.mysqlConnexion().schema.createTable(tableName, (table: knex.CreateTableBuilder) => {
+        table.charset('utf8mb4')
+        table.collate('utf8mb4_unicode_ci')
+        
         for (const key in described){
             const elem = parseSupportedTypes(schema, new Element(described[key], key)).errorScanner()
-            
             let col: any
             if (elem.is().increment()){
                 col = table.increments(elem.key())

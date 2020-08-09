@@ -6,13 +6,13 @@ import Ecosystem from './ecosystem'
 let connexion: any = null
 
 export interface IConfig {
-    mysqlConfig: MySqlConnectionConfig
-    historyDir: string
-    criticalCode: string | null
-    enableCriticalConfirmation: boolean
-    enableMigrationRemovingOnError: boolean
-    enableLog: boolean,
-    ecosystem: Ecosystem | null
+    mysqlConfig?: MySqlConnectionConfig
+    historyDir?: string
+    criticalCode?: string | null
+    enableCriticalConfirmation?: boolean
+    enableMigrationRemovingOnError?: boolean
+    enableLog?: boolean,
+    ecosystem?: Ecosystem | null
 }
 
 export default class Config {
@@ -27,10 +27,15 @@ export default class Config {
         ecosystem: null
     }
 
-    private _makeConnexion = (config: MySqlConnectionConfig) => connexion = knex({ client: 'mysql', connection: config })
+    private _makeConnexion = (config: MySqlConnectionConfig) => {
+        if (!config.charset){
+            config.charset = 'utf8mb4'
+        }
+        connexion = knex({ client: 'mysql', connection: config })
+    }
 
     config = () => this._config
-    mysqlConfig = (): MySqlConnectionConfig => this.config().mysqlConfig
+    mysqlConfig = (): MySqlConnectionConfig | null => this.config().mysqlConfig || null
     criticalCode = () => this.config().criticalCode
     migrationDir = () => this.historyDir() + '/migrations'
     ecosystem = () => this.config().ecosystem
@@ -42,8 +47,8 @@ export default class Config {
 
     historyDir = () => {
         if (this.config().historyDir !== ''){
-            if (!fs.existsSync(this.config().historyDir))
-                fs.mkdirSync(this.config().historyDir)
+            if (!fs.existsSync(this.config().historyDir || ''))
+                fs.mkdirSync(this.config().historyDir as string)
             return this.config().historyDir
         } else 
             throw new Error("You need to specify a history path directory before using ecosystem related methods.")
@@ -79,7 +84,8 @@ export default class Config {
     disableMigrationRemovingOnError = () => this.set({ enableMigrationRemovingOnError: false  })    
 
     setCriticalCode = (code: string) => this.set({criticalCode: code})
-    set = ( config: any ) => {
+    
+    set = (config: IConfig) => {
         if (!_.isEqual(config.mysqlConfig, this.mysqlConfig()) && !!config.mysqlConfig)
             this._makeConnexion(config.mysqlConfig)
         this._config = Object.assign({}, this.config(), config)
