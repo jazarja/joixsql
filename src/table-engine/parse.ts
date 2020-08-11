@@ -1,6 +1,4 @@
 import { Schema } from '@hapi/joi'
-import fs from 'fs'
-import _ from 'lodash'
 import { config } from '../../index'
 import Element from './element'
 
