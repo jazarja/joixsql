@@ -38,7 +38,6 @@ const main = () => {
             await removeTable(TABLE_NAME)
         })
     })
-
     it('STRING : unique value', async () => {
         
         const TABLE_NAME = 'test3'

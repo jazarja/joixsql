@@ -2,7 +2,6 @@ import { Joi, TableEngine, MigrationManager, Ecosystem, config } from '../index'
 import MigrationErrors from '../src/migration-engine/template/errors'
 import { expect } from 'chai'
 
-
 const main = async () => {
     const connection = config.mysqlConnexion()
     const ecosystem = new Ecosystem()
@@ -95,10 +94,9 @@ const main = async () => {
             })
 
             ecosystem.add({schema: User, tableName: USER_TABLE_NAME})
-            return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.uniqueBlocked('email', USER_TABLE_NAME, 1).message)
+            return MigrationManager.smartMigration().catch((e: Error) => {
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.uniqueBlocked('email', USER_TABLE_NAME, 1).message)
             })
-
         })
 
         it('Migrate User - add UNIQUE key on email with no duplications', async () => {
@@ -126,7 +124,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.notNullAddBlocked('user', TODO_TABLE_NAME, 2).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.notNullAddBlocked('user', TODO_TABLE_NAME, 2).message)
             })
         })
 
@@ -141,7 +139,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.foreignKeyDefaultValueDoesNotExist('user', TODO_TABLE_NAME, USER_TABLE_NAME, '3').message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.foreignKeyDefaultValueDoesNotExist('user', TODO_TABLE_NAME, USER_TABLE_NAME, '3').message)
             })
         })
 
@@ -167,7 +165,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.notNullBlocked('user', TODO_TABLE_NAME, 2).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.notNullBlocked('user', TODO_TABLE_NAME, 2).message)
             })
         })
 
@@ -181,7 +179,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.foreignKeyDefaultValueDoesNotExist('user', TODO_TABLE_NAME, USER_TABLE_NAME, '3').message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.foreignKeyDefaultValueDoesNotExist('user', TODO_TABLE_NAME, USER_TABLE_NAME, '3').message)
             })
         })
 
@@ -195,7 +193,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.stringMaxChangeBlocked('content', TODO_TABLE_NAME, 2, 4).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.stringMaxChangeBlocked('content', TODO_TABLE_NAME, 2, 4).message)
             })
         })
 
@@ -209,7 +207,7 @@ const main = async () => {
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.columnTypeChangeForbidden('content', TODO_TABLE_NAME).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.columnTypeChangeForbidden('content', TODO_TABLE_NAME).message)
             })
         })
 
@@ -248,7 +246,7 @@ const main = async () => {
             })
 
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.floatMaxChangeBlocked('currency', USER_TABLE_NAME, 1, 999.9999).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.floatMaxChangeBlocked('currency', USER_TABLE_NAME, 1, 999.9999).message)
             })
         })
 
@@ -278,7 +276,7 @@ const main = async () => {
     
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.columnTypeChangeForbidden('score', TODO_TABLE_NAME).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.columnTypeChangeForbidden('score', TODO_TABLE_NAME).message)
             })
         })
 
@@ -293,7 +291,7 @@ const main = async () => {
     
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.primaryDuplicatesBlocked('score', TODO_TABLE_NAME, 1).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.primaryDuplicatesBlocked('score', TODO_TABLE_NAME, 1).message)
             })
         })
 
@@ -315,7 +313,7 @@ const main = async () => {
     
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             return MigrationManager.smartMigration().catch((e) => {
-                expect(e.message).to.eq(MigrationErrors.primaryNullBlocked('score', TODO_TABLE_NAME, 2).message)
+                expect(e.message).to.eq(`Error: ` + MigrationErrors.primaryNullBlocked('score', TODO_TABLE_NAME, 2).message)
             })
         })
 
