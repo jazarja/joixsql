@@ -134,7 +134,7 @@ export const getUpdatedExecutedList = (updated: any, tableName: string) => {
         const isNextUnique = actions.unique().is(nextCol)
 
         const changed = hasChanged(prevCol, nextCol)
-        const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus() || changed.defaultValue()
+        const hasSQLColumnFormatChanged = changed.method() || changed.nullableStatus() || changed.type() || changed.unsignedStatus() || changed.defaultValue() || changed.numberMaxAndMin || changed.stringMax()
 
         /*      PRIMARY KEY     */
         let shouldUnshiftChange = false

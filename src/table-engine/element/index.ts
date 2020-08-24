@@ -220,8 +220,8 @@ export default class Element {
             return column.float(this.key(), floatPrecision.precision, floatPrecision.scale)
         }
         if (this.is().double()){
-            columnSTR.string += `.specificType('${this.key()}', 'DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}')`
-            return column.specificType(this.key(),`DOUBLE${this.is().strictlyPositive() ? ' UNSIGNED' :''}`)
+            columnSTR.string += `.specificType('${this.key()}', 'double')`
+            return column.specificType(this.key(), 'double')
         }
         if (this.is().portSet()){
             columnSTR.string += `.integer('${this.key()}').unsigned()`
@@ -245,7 +245,7 @@ export default class Element {
         const isMinBiggest = (Math.max(Math.abs(minimum), Math.abs(maximum)) * -1 === minimum)
         const e = _.find(MYSQL_NUMBER_TYPES, (o) => isMinBiggest ? minimum >= o.min : maximum <= o.max)
         if (!e)
-            type = `DOUBLE${isUnsigned ? ` unsigned`: ''}`
+            type = `double`
         else 
             type = `${e.type}${isUnsigned ? ` unsigned` : ''}`
         columnSTR.string += `.specificType('${this.key()}', '${type}')`

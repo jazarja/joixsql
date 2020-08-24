@@ -1,8 +1,12 @@
+import _ from 'lodash'
 import { TColumn } from './types'
 import { pullFullMethodFromColumn } from './parse'
-import { split } from 'lodash'
+import { 
+    MYSQL_STRING_TYPES,
+    MYSQL_NUMBER_TYPES
+} from '../../table-engine/mysql/types'
 
-const TYPE_METHOD =  ['increments', 'boolean', 'timestamp', 'dateTime', 'float', 'specificType', 'integer', 'enum', 'string', 'text']
+const TYPE_METHOD =  ['increments', 'boolean', 'dateTime', 'float', 'specificType', 'integer', 'enum', 'string', 'text']
 
 export default (column: TColumn) => {
 
@@ -65,17 +69,30 @@ export default (column: TColumn) => {
 
     const isUnique = () => !!pullFullMethodFromColumn('unique', column)
     const isNotNullable = () => !!pullFullMethodFromColumn('notNullable', column)
-    const isDate = () => type() === 'timestamp' || type() === 'dateTime'
-    const isTimestampType = () => type() === 'timestamp'
+    const isDate = () => isDateTimeType()
     const isDateTimeType = () => type() === 'dateTime'
 
+    const isFloatType = () => type() === 'float'
+    const isDoubleType = () => type() === 'double'
 
-    const isUnsigned = () => !!pullFullMethodFromColumn('unsigned', column)
+    const isIntType = () => type()?.indexOf('int') != -1
+    const isBigIntType = () => type()?.indexOf('bigint') != -1
+
+    const isStringType = () => type() === 'string'
+    const isTextType = () => type() === 'text'
+    const isDeepStringType = () => isStringType() || isTextType()
+
+    const isBool = () => type() === 'boolean'
+
+
+    const isNumber = () => isDoubleType() || isFloatType() || isIntType()
+
+    const isUnsigned = () => !!pullFullMethodFromColumn('unsigned', column) 
+
     const isDeepUnsigned = () => {
         if (isUnsigned())
             return true
-        const m = method(false) as string
-        return m.toLowerCase().indexOf('unsigned') != -1 || m.toLowerCase().indexOf('increments') != -1
+        return type()?.indexOf('unsigned') != -1
     }
 
     const isAutoIncrements = () => {
@@ -83,8 +100,37 @@ export default (column: TColumn) => {
         return m.toLowerCase().indexOf('increments') != -1
     }
 
+    const numberMaxAndMin = () => {
+        const floatSpcs = floatSpecs()
+        if (floatSpcs){
+            const maxEntire = parseInt(new Array(floatSpcs.precision - floatSpcs.scale).fill('9', 0, floatSpcs.precision - floatSpcs.scale).join(''))
+            const maxDecimal = parseFloat('0.' + new Array(floatSpcs.scale).fill('9', 0, floatSpcs.scale).join(''))
+            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatSpcs.scale))
+            return {
+                max, 
+                min: max*-1
+            }
+        }
+        if (isDoubleType()){
+            return {
+                max: 1.7976931348623157E+308,
+                min: -1.7976931348623157E+308
+            }
+        }
+        if (isIntType()){
+            const unsigned = isDeepUnsigned()
+            const m = _.find(MYSQL_NUMBER_TYPES, {type: isBigIntType() ? 'bigint' : 'int'})
+            return {
+                max: !unsigned ? m.max : (m.max * 2) + 1 ,
+                min: !unsigned ? m.min : 0
+            }
+        }
+        return null
+    }
+
+
     const stringMax = () => {
-        if (type() === 'string'){
+        if (isStringType()){
             const m = method(false)
             if (m){
                 const splited = m.split(',')
@@ -94,9 +140,24 @@ export default (column: TColumn) => {
         }
         return null
     }
-    
+
+    const textMax = () => {
+        if (isTextType()){
+            const m = method(false)
+            if (m){
+                const splited = m.split(',')
+                if (splited.length == 2){
+                    const e = _.find(MYSQL_STRING_TYPES, {type: splited[1].toLowerCase().trim() })
+                    if (e)
+                        return e.max
+                }
+            }
+        }
+        return null
+    }
+
     const floatSpecs = () => {
-        if (type() === 'float'){
+        if (isFloatType()){
             const m = method(false)
             if (m){
                 const splited = m.split(',')
@@ -112,6 +173,9 @@ export default (column: TColumn) => {
         if (methodName){
             if (methodName === 'increments')
                 return 'int unsigned'
+            else if (methodName === 'enum'){
+                return 'string'
+            }
             else if (methodName === 'specificType'){
                 const value = (pullFullMethodFromColumn('specificType', column, true) as string).split(',')[1].trim()
                 return value.substring(1, value.length - 1)
@@ -123,12 +187,15 @@ export default (column: TColumn) => {
 
     return {
         type,
+        isDeepStringType,
+        numberMaxAndMin,
+        textMax,
+        isAutoIncrements,
         isDeepUnsigned,
         isUnsigned,
+        isNumber,
         isDate,
-        isTimestampType,
-        isDateTimeType,
-        isAutoIncrements,
+        isBool,
         isUnique,
         isNotNullable,
         pullDefaultTo,
@@ -139,5 +206,4 @@ export default (column: TColumn) => {
         pullForeignKey,
         pullPrimary
     }
-
 }

@@ -12,7 +12,7 @@ const countTotalRows = async (tableName: string) => {
 
 const fetchBy = async (tableName: string, where: any) => {
     const result = await config.mysqlConnexion().table(tableName).where(where).first()
-    if (_.isObject(result)){
+    if (_.isObjectLike(result)){
         return result
     }
     return null
@@ -36,13 +36,13 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         return ret[0][0]['COUNT(*)'] as number
     }
 
-    const countLessThan0 = async (column: string) => {
-        const c: any = await config.mysqlConnexion().table(tableName).where(column, '<', 0).count('* as count')
+    const countLowerThan = async (column: string, min: number) => {
+        const c: any = await config.mysqlConnexion().table(tableName).where(column, '<', min).count('* as count')
         return c[0].count as number
     }
 
     const countGreaterThan = async (column: string, max: number) => {
-        const c: any = await config.mysqlConnexion().table(tableName).where(column, '>', 0).count('* as count')
+        const c: any = await config.mysqlConnexion().table(tableName).where(column, '>', max).count('* as count')
         return c[0].count as number
     }
 
@@ -57,7 +57,8 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         const foreign = sqlInfo(nextCol).pullForeignKey()
         const defaultTo = sqlInfo(nextCol).pullDefaultTo()
         const stringMax = sqlInfo(nextCol).stringMax()
-        const floatSpecs = sqlInfo(nextCol).floatSpecs()
+        const textMax = sqlInfo(nextCol).textMax()
+        const numberMaxAndMin = sqlInfo(nextCol).numberMaxAndMin()
         const primary = sqlInfo(nextCol).pullPrimary()
     
 
@@ -71,8 +72,36 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
         }
 
         //HAS CHANGED OF TYPE
-        if (sqlInfo(prevCol).type() != sqlInfo(nextCol).type() && totalRows > 0){
-            throw errors.columnTypeChangeForbidden(key, tableName)
+        if (totalRows > 0){
+            
+            if (
+                sqlInfo(prevCol).isDeepStringType() != sqlInfo(nextCol).isDeepStringType() || 
+                sqlInfo(prevCol).isDate() != sqlInfo(nextCol).isDate() || 
+                sqlInfo(prevCol).isNumber() != sqlInfo(nextCol).isNumber() || 
+                sqlInfo(prevCol).isBool() != sqlInfo(nextCol).isBool()
+            ){
+                throw errors.columnTypeChangeForbidden(key, tableName)
+            }
+
+            //IF A STRING WITH A DEFINED MAX
+            if (stringMax || textMax){
+                const res = await countGreaterThanLength(key, stringMax || textMax)
+                if (res > 0){
+                    throw errors.stringMaxChangeBlocked(key, tableName, res, stringMax || textMax)
+                }
+            }
+            
+            if (numberMaxAndMin){
+                const { max, min } = numberMaxAndMin
+                const countMax = await countGreaterThan(key, max)
+                if (countMax > 0){
+                    throw errors.numberMaxChangedBlocked(key, tableName, countMax, max)
+                }
+                const countMin = await countLowerThan(key, min)
+                if (countMin > 0){
+                    throw errors.numberMinChangedBlocked(key, tableName, countMin, min)
+                }
+            }
         }
 
         //WAS NOT NOT-NULLABLE and IS NOT-NULLABLE NOW | WITHOUT DEFAULT VALUE
@@ -87,32 +116,6 @@ export const handleUpdateProhibitions = async (updated: any, tableName: string) 
             const nDuplicates = await countDuplicateValues(key)
             if (nDuplicates > 0)
                 throw errors.uniqueBlocked(key, tableName, nDuplicates)
-        }
-
-        /* TO ACTIVATE WHEN TYPE CHANGE WILL BE ALLOWED */
-        // if (!sqlInfo(prevCol).isDeepUnsigned() && sqlInfo(nextCol).isDeepUnsigned()){
-        //     const count = await countLessThan0(key)
-        //     if (count > 0)
-        //         throw errors.unsignedBlocked(key, tableName, count)
-        // }
-
-        //IF A STRING WITH A DEFINED MAX
-        if (stringMax){
-            const res = await countGreaterThanLength(key, stringMax)
-            if (res > 0){
-                throw errors.stringMaxChangeBlocked(key, tableName, res, stringMax)
-            }
-        }
-
-        //IF A FLOAT
-        if (floatSpecs){
-            const maxEntire = parseInt(new Array(floatSpecs.precision - floatSpecs.scale).fill('9', 0, floatSpecs.precision - floatSpecs.scale).join(''))
-            const maxDecimal = parseFloat('0.' + new Array(floatSpecs.scale).fill('9', 0, floatSpecs.scale).join(''))
-            const max = parseFloat((maxEntire + maxDecimal).toFixed(floatSpecs.scale))
-            const count = await countGreaterThan(key, max)
-            if (count > 0){
-                throw errors.floatMaxChangeBlocked(key, tableName, count, max)
-            }
         }
 
         //IF A FOREIGN KEY WITH A DEFAULT VALUE

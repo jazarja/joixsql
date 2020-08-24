@@ -12,5 +12,8 @@ export default (prevCol: TColumn, nextCol: TColumn) => {
         type : () => !_.isEqual(sqlInfo(prevCol).type(), sqlInfo(nextCol).type()),
         unsignedStatus : () => !_.isEqual(sqlInfo(prevCol).isUnsigned(), sqlInfo(nextCol).isUnsigned()),
         method : () => !_.isEqual(sqlInfo(prevCol).method(), sqlInfo(nextCol).method()),
+        stringMax: () => !_.isEqual(sqlInfo(prevCol).stringMax(), sqlInfo(nextCol).stringMax()),
+        numberMaxAndMin: () => !_.isEqual(sqlInfo(prevCol).numberMaxAndMin(), sqlInfo(nextCol).numberMaxAndMin()),
+
     }
 }

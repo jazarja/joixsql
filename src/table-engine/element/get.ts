@@ -44,7 +44,6 @@ export default class Get {
             return null
         }
         if (this.is().float()){
-            const isUnsigned = this.is().strictlyPositive()
             const floatPrecision = this.element().get().floatPrecision() as IFloatPrecision
 
             const maxEntire = parseInt(new Array(floatPrecision.precision - floatPrecision.scale).fill('9', 0, floatPrecision.precision - floatPrecision.scale).join(''))
@@ -54,14 +53,13 @@ export default class Get {
             return {
                 type: `FLOAT`,
                 maximum: max,
-                minimum: isUnsigned ? 0 : max * -1
+                minimum: max * -1
             }
         }
         if (this.is().double()){
-            const isUnsigned = this.is().strictlyPositive()
             return {
-                type: `DOUBLE${isUnsigned ? ` unsigned`: ''}`,
-                minimum: isUnsigned ? 0 : -1.7976931348623157E+308,
+                type: `double`,
+                minimum: -1.7976931348623157E+308,
                 maximum: 1.7976931348623157E+308
             }
         }
@@ -90,8 +88,8 @@ export default class Get {
         const isMinBiggest = (Math.max(Math.abs(minimum), Math.abs(maximum)) * -1 === minimum)
         const e = _.find(MYSQL_NUMBER_TYPES, (o) => isMinBiggest ? minimum >= o.min : maximum <= o.max)
         if (!e){
-            type = `DOUBLE${isUnsigned ? ` unsigned`: ''}`
-            minimum = isUnsigned ? 0 : -1.7976931348623157E+308
+            type = `double`
+            minimum = -1.7976931348623157E+308
             maximum = 1.7976931348623157E+308
         }
         else {
