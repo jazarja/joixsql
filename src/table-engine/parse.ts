@@ -52,6 +52,7 @@ export const parseSupportedTypes = (schema: Schema, elem: Element): Element => {
             e.flags.primary_key = elem.flags().primary_key
             e.flags.foreign_key = elem.flags().foreign_key
             e.flags.delete_cascade = elem.flags().delete_cascade
+            e.flags.unique = elem.flags().unique
             e.flags.update_cascade = elem.flags().update_cascade
             e.flags.populate = elem.flags().populate
             e.flags.noPopulate = elem.flags().noPopulate
