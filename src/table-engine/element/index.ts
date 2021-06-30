@@ -214,6 +214,11 @@ export default class Element {
 
     public parseNumber = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
 
+        if (this.is().enum()){
+            columnSTR.string += `.enum('${this.key()}', [${this.allow().map((v: string) => `'${v}'`).join(',')}])`    
+            return column.enum(this.key(), this.allow())
+        }
+
         if (this.is().float()){
             const floatPrecision = this.get().floatPrecision() as IFloatPrecision
             columnSTR.string += `.float('${this.key()}', ${floatPrecision.precision}, ${floatPrecision.scale})`
