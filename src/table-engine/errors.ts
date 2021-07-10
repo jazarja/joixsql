@@ -25,8 +25,4 @@ export default {
     uniqueStringShouldHaveAMaxLengthSet: (column: string) => new Error(`Column: ${column} - The maximum length of a string with a UNIQUE constraint should be defined. The maximum size is 65535`),
     typeNotAcceptedForDefaultValue: (type: any) => new Error(`${type} is not accepted as default value`),
     forbiddenDefaultValue: (value: any, column: string) => new Error(`${value} is not accepted as default value for the column ${column}`),
-    
-    
-
-
 }
