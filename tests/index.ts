@@ -13,8 +13,8 @@ const HARD_MIGRATION_ENABLED = true
 
 config.set({
     mysqlConfig: {
-        host: '',
-        user: 'root',
+        host: 'localhost',
+        user: '',
         password: '',
         database: ''
     },
