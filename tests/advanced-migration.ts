@@ -110,7 +110,7 @@ const main = async () => {
             })
 
             ecosystem.add({schema: User, tableName: USER_TABLE_NAME})
-            await MigrationManager.smartMigration()
+            return await MigrationManager.smartMigration()
         })
 
         it('Migrate Todo - add NOT NULLABLE foreign key with NO DEFAULT VALUE on non-empty table', async () => {
@@ -152,7 +152,7 @@ const main = async () => {
             })
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
-            await MigrationManager.smartMigration()
+            return await MigrationManager.smartMigration()
         })
 
         it('Migrate Todo - update `user` foreign key to NOT NULLABLE with no DEFAULT VALUE.', async () => {
@@ -220,7 +220,7 @@ const main = async () => {
             })
 
             ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
-            await MigrationManager.smartMigration()
+            return await MigrationManager.smartMigration()
         })
 
         it('Migrate User - Add a currency float field ', async () => {
@@ -292,7 +292,7 @@ const main = async () => {
             await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ score: -1 })
             await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ score: -1 })
         })
-    
+
         it('Migrate Todo - Switch score to unsigned ', async () => {
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
@@ -393,20 +393,20 @@ const main = async () => {
             await MigrationManager.smartMigration()
         })
 
-        it('Migrate Todo - Update id to an unsigned big int', async () => {
-            const Todo = Joi.object({
-                id: Joi.number().max(9923372036854775807).positive(),
-                content: Joi.string(),
-                created_at: Joi.date().default('now'),
-                user: Joi.number().foreignKey(USER_TABLE_NAME, 'id'),
-                score: Joi.number().primaryKey()
-            })
+        // it('Migrate Todo - Update id to an unsigned big int', async () => {
+        //     const Todo = Joi.object({
+        //         id: Joi.number().max(9923372036854775807).positive(),
+        //         content: Joi.string(),
+        //         created_at: Joi.date().default('now'),
+        //         user: Joi.number().foreignKey(USER_TABLE_NAME, 'id'),
+        //         score: Joi.number().primaryKey()
+        //     })
     
-            ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
-            await MigrationManager.smartMigration()
-            await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ id: 9923372036854775801 })
-            await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ id: 9923372036854775800 })
-        })
+        //     ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
+        //     await MigrationManager.smartMigration()
+        //     await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ id: 9923372036854775801 })
+        //     await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ id: 9923372036854775800 })
+        // })
 
         it('Migrate Todo - Try to remove unsigned', async () => {
             const Todo = Joi.object({

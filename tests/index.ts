@@ -13,10 +13,10 @@ const HARD_MIGRATION_ENABLED = true
 
 config.set({
     mysqlConfig: {
-        host: '',
-        user: 'root',
-        password: '',
-        database: ''
+        host: 'localhost',
+        user: 'fanta',
+        password: 'aqw12345',
+        database: 'yeca'
     },
     historyDir: './history'
 })
