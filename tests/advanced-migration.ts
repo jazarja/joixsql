@@ -2,6 +2,10 @@ import { Joi, TableEngine, MigrationManager, Ecosystem, config } from '../index'
 import MigrationErrors from '../src/migration-engine/template/errors'
 import { expect } from 'chai'
 
+const timeout = (ms: number) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const main = async () => {
     const connection = config.mysqlConnexion()
     const ecosystem = new Ecosystem()
@@ -84,9 +88,9 @@ const main = async () => {
             const count = await connection.table(USER_TABLE_NAME).count()
             expect(count[0]['count(*)']).to.eq(2)
         })
-
+        
         it('Migrate User - add UNIQUE key on email with existing duplications', async () => {
-
+            await timeout(1000)
             const User = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey().group(['todo']),
                 email: Joi.string().email().lowercase().required().unique(),
@@ -99,8 +103,9 @@ const main = async () => {
             })
         })
 
-        it('Migrate User - add UNIQUE key on email with no duplications', async () => {
 
+        it('Migrate User - add UNIQUE key on email with no duplications', async () => {
+            await timeout(1000)
             await connection.table(USER_TABLE_NAME).where({id: 2}).update({email: 'fantasim.dev@gmail.com'})
 
             const User = Joi.object({
@@ -114,7 +119,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - add NOT NULLABLE foreign key with NO DEFAULT VALUE on non-empty table', async () => {
-
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(400).default(''),
@@ -129,7 +134,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - add NOT NULLABLE foreign key with non existing DEFAULT VALUE.', async () => {
-
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(400).default(''),
@@ -144,6 +149,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - add foreign key.', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(400).default(''),
@@ -156,6 +162,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - update `user` foreign key to NOT NULLABLE with no DEFAULT VALUE.', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(400).default(''),
@@ -170,6 +177,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - update `user` foreign key with a non existing DEFAULT VALUE', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(400).default(''),
@@ -184,6 +192,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - change content length with a max inferior to current present values length', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(4).default(''),
@@ -198,6 +207,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - change content type', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1),
@@ -212,6 +222,7 @@ const main = async () => {
         })
 
         it('Migrate Todo - change content length', async () => {
+            await timeout(1000)
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(5).default(''),
@@ -224,6 +235,7 @@ const main = async () => {
         })
 
         it('Migrate User - Add a currency float field ', async () => {
+            await timeout(1000)
             const User = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey().group(['todo']),
                 email: Joi.string().email().lowercase().required().unique(),
@@ -238,6 +250,7 @@ const main = async () => {
         })
 
         it('Migrate User - Update currency field from max 9999.9999 to max 999.9999 with present greater values', async () => {
+            await timeout(1000)
             const User = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey().group(['todo']),
                 email: Joi.string().email().lowercase().required().unique(),
@@ -252,6 +265,7 @@ const main = async () => {
         })
 
         it('Migrate User - Update currency field from min -9999.9999 to min -999.9999 with present lower values', async () => {
+            await timeout(1000)
             await connection.table(USER_TABLE_NAME).where({id: 2}).update({ currency: -1244.52 })
 
             const User = Joi.object({
@@ -267,9 +281,8 @@ const main = async () => {
             })
         })
 
-
         it('Migrate Todo - Add a score int value ', async () => {
-            
+            await timeout(1000)
             const User = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey().group(['todo']),
                 email: Joi.string().email().lowercase().required().unique(),
@@ -283,17 +296,19 @@ const main = async () => {
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(5).default(''),
                 created_at: Joi.date().default('now'),
+                score: Joi.number(),
                 user: Joi.number().foreignKey(USER_TABLE_NAME, 'id'),
-                score: Joi.number()
             })
-            ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
 
+            ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
             await MigrationManager.smartMigration()
             await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ score: -1 })
             await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ score: -1 })
         })
 
         it('Migrate Todo - Switch score to unsigned ', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().autoIncrement().primaryKey(),
                 content: Joi.string().min(1).max(5).default(''),
@@ -308,7 +323,10 @@ const main = async () => {
             })
         })
 
+
         it('Migrate Todo - Switch Primary key to score 1/2', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().positive(),
                 content: Joi.string().min(1).max(5).default(''),
@@ -324,6 +342,7 @@ const main = async () => {
         })
 
         it('Update All Todo - Init their score with null', async () => {
+            await timeout(1000)
 
             await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ score: null })
             await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ score: null })
@@ -331,6 +350,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Switch Primary key to score 2/2', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().positive(),
                 content: Joi.string().min(1).max(5).default(''),
@@ -346,11 +367,15 @@ const main = async () => {
         })
 
         it('Update All Todo - Init their score with positive scores', async () => {
+            await timeout(1000)
+
             await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ score: 4 })
             await connection.table(TODO_TABLE_NAME).where({id: 2}).update({ score: 5 })
         })
 
         it('Migrate Todo - Update content to 1000 char maximum', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().positive(),
                 content: Joi.string().min(1).max(1000).default(''),
@@ -366,6 +391,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Update content to 155 char maximum with greater present values.', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().positive(),
                 content: Joi.string().min(1).max(155).default(''),
@@ -381,6 +408,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Update content to text', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().positive(),
                 content: Joi.string(),
@@ -401,7 +430,6 @@ const main = async () => {
         //         user: Joi.number().foreignKey(USER_TABLE_NAME, 'id'),
         //         score: Joi.number().primaryKey()
         //     })
-    
         //     ecosystem.add({schema: Todo, tableName: TODO_TABLE_NAME})
         //     await MigrationManager.smartMigration()
         //     await connection.table(TODO_TABLE_NAME).where({id: 1}).update({ id: 9923372036854775801 })
@@ -409,6 +437,8 @@ const main = async () => {
         // })
 
         it('Migrate Todo - Try to remove unsigned', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9123372036854775807),
                 content: Joi.string(),
@@ -425,6 +455,8 @@ const main = async () => {
 
 
         it('Migrate Todo - Try to changed created_at type with STRING', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.string(),
@@ -440,6 +472,8 @@ const main = async () => {
 
 
         it('Migrate Todo - Try to changed created_at type with INT', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.string(),
@@ -454,6 +488,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Try to changed created_at type with FLOAT', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.string(),
@@ -468,6 +504,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Try to changed created_at type with DOUBLE', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.string(),
@@ -482,6 +520,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Try to changed created_at type with BOOLEA', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.string(),
@@ -496,6 +536,8 @@ const main = async () => {
         })
 
         it('Migrate Todo - Try to changed content type with Date', async () => {
+            await timeout(1000)
+
             const Todo = Joi.object({
                 id: Joi.number().max(9923372036854775807).positive(),
                 content: Joi.date(),
