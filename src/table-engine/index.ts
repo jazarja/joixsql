@@ -13,6 +13,7 @@ import { IModel } from '../ecosystem'
 
 import errors from './errors'
 
+//Returns analyzation of the schema 
 const analyzeSchema = (schema: Schema): IAnalyze => {
     detectAndTriggerSchemaErrors(schema, 'empty')
     const ret: IAnalyze = {
@@ -28,7 +29,9 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
 
     const described = schema.describe().keys
     for (const key in described){
+        //Create a new element with the joi schema value and key name
         const elemOrigin = new Element(described[key], key)
+        //Parse, adjust and check errors on joi values in the schema
         const elem = parseSupportedTypes(schema, elemOrigin).errorScanner()
 
         ret.all_keys.push(key)
@@ -90,7 +93,6 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
             ret.defaults[key] = dv()
         }
 
-
         if (elem.is().group()){
             for (const e of elem.get().group()){
                 if (!(e in ret.groups))
@@ -103,6 +105,7 @@ const analyzeSchema = (schema: Schema): IAnalyze => {
     return ret
 }
 
+//Returns the table building function as a string ready to be inserted in a Knex migration file.
 const buildTableString = (schema: Schema, tableName: string): string => {
     detectAndTriggerSchemaErrors(schema, tableName)
     const described = schema.describe().keys
@@ -119,7 +122,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
                 columnSTR.string += `.increments('${elem.key()}')`
                 col = table.increments(elem.key())
             } else {
-                col =elem.parse(table, columnSTR)
+                col = elem.parse(table, columnSTR)
             }
             elem.addColumnOptions(col, columnSTR)
             columnSTR.string += ';\n'
@@ -130,7 +133,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
     return columnSTR.string
 }
 
-
+//Returns the knex schema table builder
 const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     detectAndTriggerSchemaErrors(schema, tableName) 
     const described = schema.describe().keys
@@ -152,6 +155,7 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     })
 }
 
+//Build tables from all Schemas present in the Ecosystem model 
 export const buildAllFromEcosystem = async () => {
     const created: IModel[] = []
     const ecosystem = config.ecosystem()
@@ -186,6 +190,7 @@ export const buildAllFromEcosystem = async () => {
         try {
             const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
                 const queries = sortTableToCreate().map((tName: string) => {
+                    //Check if the table already exists
                     const isCreated = MigrationManager.schema().lastFilename(tName) != null 
                     if (!isCreated){
                         const ecosystemModel = ecosystem.getModel(tName) as IModel
@@ -195,6 +200,7 @@ export const buildAllFromEcosystem = async () => {
                 })
                 return Promise.all(queries).then(trx.commit).catch(trx.rollback)
             })
+            //Create the history file schema
             for (let m of created)
                 MigrationManager.schema().create(m)
             return res
@@ -255,6 +261,10 @@ const dropAllFromEcosystem = async () => {
     await deleteAll()
 }
 
+/*
+    Returns the table names of the table to create present in the ecoystem in the right order
+    based on their foreign keys and populate keys.
+*/
 export const sortTableToCreate = () => {
     const ecosystem = config.ecosystem()
     if (!ecosystem)

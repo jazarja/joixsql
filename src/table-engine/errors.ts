@@ -8,7 +8,6 @@ export default {
     wrongColumnOrTableFormat: (key: string) => new Error(`Table or column ${key} has a wrong format. It should be respecting this regex format: /^[A-Za-Z0-9][A-Za-Z0-9_]*$/ | examples: user_id, user1, user_1, user_ID_1, USER_ID`),
     manyPrimaryKey: (table: string) => new Error(`Your table ${table} contains many primary keys`),
     unsupportedType: (t: string) => new Error(`${t} is not supported, here is the list of supported types ${LIST_SUPPORTED_TYPES.join(', ')}.`),
-
     elementTypeUnsupported: (column: string) => new Error(`Column: ${column} - Only string, number, boolean and Date type are accepted as default value.`),
     enumHasWrongValue: (column: string) => new Error(`Column: ${column} - Enum's default value can't be different than the values.`),
     enumHasWrongType: (column: string) => new Error(`Column: ${column} - Enum's values should have the same type than the column one.`),

@@ -12,20 +12,30 @@ import { Color } from '../utils'
 
 export class Manager {
     
+    //Returns the schema manager
     schema = () => schema(this)
+    //Returns the migration managger
     migration = () => migration(this)
+
+    //Returns the critical code manager
     confirmation = () => confirmation()
 
+    //Remove all history from a table name
     removeAllHistory = (tableName: string) => {
         this.schema().removeAll(tableName)
         this.migration().removeAll(tableName)
     }
 
+    //Remove last history from a table name
     removeLastHistory = (tableName: string) => {
         this.schema().removeLast(tableName)
         this.migration().removeLast(tableName)
     }
 
+    /*
+        Detects all changes in schemas from the ecosystem and triggers migrations 
+        on the schemas which changed.
+    */
     smartMigration = async () => {
         const ecosystem = config.ecosystem()
         const migrations = !ecosystem ? [] : ecosystem.list()

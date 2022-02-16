@@ -187,7 +187,6 @@ export default class Element {
         return this
     }
 
-
     public parse = (column: knex.TableBuilder, columnSTR: any): knex.ColumnBuilder => {
         const typeParses: any = {
             number: this.parseNumber,
