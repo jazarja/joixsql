@@ -40,6 +40,7 @@ export default class Ecosystem {
 
     list = () => this._list
 
+    //Add a new Joi Schema to the Ecosystem
     add = (model: IModel) => {
         this.delete(model.tableName)
         this.list().push(model)
@@ -48,15 +49,19 @@ export default class Ecosystem {
 
     reset = () => this._list = []
     
+    //Get a Schema from the table name in the ecosystem
     getModel = (tableName: string) => _.find(this.list(), {tableName})
 
+    //Remove a Schema from the table name in the ecosystem
     delete = (tableName: string) => _.remove(this.list(), {tableName})
 
     schema = (m: IModel): ISchema => {
         const { schema } = m
 
+        //Returns the table engine
         const engine = (): ITableEngine => TableEngine
 
+        //Checks wether the value matches the schema validation system
         const validate = (value: any): IValidation => {
             const ret = schema.validate(value)
             return {
@@ -64,17 +69,23 @@ export default class Ecosystem {
                 value: ret.value
             }
         }
-    
+
+        /*
+            Returns populated column.
+            Populated columns are columns linked with other ones in other tables.
+            It can be a column with a foreign key or just a "populate" indicating the link between two columns
+            without sql consequences.
+            "Populate" extension has been added to enable feature developement on top of Joixsql for formating rendered data for example.
+        */
         const getPopulate = () => {
             const { foreign_keys, populate } = engine().analyzeSchema(schema)
-            let pops = populate.slice()
-            _.remove(pops, {no_populate: true})
             for (let foreign of foreign_keys){
                 const { key, table_reference, key_reference, group_id, no_populate } = foreign
+                //if the current extension noPopulate() IS NOT set            
                 if (!no_populate){
                     const modelRef = this.getModel(table_reference)
                     if (modelRef){
-                        this.schema(modelRef).getPrimaryKey() === key_reference
+                        this.schema(modelRef).getPrimaryKey() === key_reference && 
                         !_.find(populate, {key}) && populate.push({
                             key, 
                             table_reference, 
@@ -88,6 +99,7 @@ export default class Ecosystem {
             return populate
         }
     
+        //Remove the key/value in the state if the keys are not present in the schema
         const cleanNonPresentValues = (state: any) => {
             const newState = _.cloneDeep(state)
             const describedSchema = schema.describe().keys
@@ -112,6 +124,7 @@ export default class Ecosystem {
         }
     }
 
+    //Returns different tests on a Schema to check that they are correctly set
     verify = (v: IModel): IVerify => {
 
         const all = () => {
@@ -122,6 +135,7 @@ export default class Ecosystem {
             crossedPopulatedValues()
         }
 
+        //Check that there is no crossed populated columns
         const crossedPopulatedValues = () => {
             const origin_table = v.tableName
     
@@ -137,6 +151,7 @@ export default class Ecosystem {
             recur(v)
         }
 
+        //Check that the key and table pointed in a populate setting exists in the ecosystem.
         const populateExistences = () => {
             const origin_table = v.tableName
             const populate = this.schema(v).getPopulate()
@@ -153,6 +168,7 @@ export default class Ecosystem {
             }
         }
 
+        //Check that the key and table pointed in a foreign key setting exists in the ecosystem.
         const foreignKeyExistences = () => {
             const origin_table = v.tableName
             const foreigns = this.schema(v).getForeignKeys()
@@ -173,7 +189,7 @@ export default class Ecosystem {
             const origin_table = v.tableName
             const populate = this.schema(v).getPopulate()
             for (let p of populate){
-                const { table_reference, group_id, key_reference, key } = p
+                const { table_reference, group_id, key } = p
                 if (group_id){
                     const mRef = this.getModel(table_reference) as IModel
                     const groups = this.schema(mRef).getGroups()
@@ -183,6 +199,7 @@ export default class Ecosystem {
             }
         }
 
+        //Check that there is no crossed foreign key columns
         const crossedForeignKey = () => {
             const recur = (elem: IForeign, history: string[], over: string[], tableName: string) => {
                 const { table_reference, key_reference} = elem
