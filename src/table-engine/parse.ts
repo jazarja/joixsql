@@ -1,4 +1,4 @@
-import { Schema } from '@hapi/joi'
+import { Schema } from 'joi'
 import { config } from '../../index'
 import Element from './element'
 

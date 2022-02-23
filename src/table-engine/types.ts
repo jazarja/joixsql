@@ -1,4 +1,4 @@
-import { Schema } from '@hapi/joi'
+import { Schema } from 'joi'
 
 interface ITableEngine {
     analyzeSchema(schema: Schema): IAnalyze

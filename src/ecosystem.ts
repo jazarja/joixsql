@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import Joi from "@hapi/joi";
+import Joi from "joi";
 import TableEngine from './table-engine'
 import { IForeign, ITableEngine, IValidation, IPopulate, IAnalyze, TObjectAny, TObjectArrayString, IRef } from './table-engine/types'
 
 export interface IModel {
-    schema: Joi.Schema
+    schema: Joi.ObjectSchema<any>
     tableName: string
 }
 

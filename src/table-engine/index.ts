@@ -1,6 +1,7 @@
-import { Schema } from '@hapi/joi'
+import { Schema } from 'joi'
 import _ from 'lodash'
 import knex, { SchemaBuilder } from 'knex'
+
 import { config, MigrationManager } from '../../index'
 import { IAnalyze, IForeign } from './types'
 import Element from './element'
