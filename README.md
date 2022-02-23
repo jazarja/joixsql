@@ -64,14 +64,14 @@ Joi.object({
 })
 ```
 
-#### general: groups
+#### general: group
 
-groups() has NO effect on MySQL/MariaDB. 
+group() has NO effect on MySQL/MariaDB. 
 Feature enabled to allow feature developement on top of JOIxSQL, for classifying columns data, to render them only when they are included in a group, to avoid rendering the whole object when no need.
 
 ```ts
 Joi.object({
-    email: Joi.string().email().groups(['full', 'preview'])
+    email: Joi.string().email().group(['full', 'preview'])
 })
 ```
 
