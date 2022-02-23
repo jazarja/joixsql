@@ -2,8 +2,13 @@
   <a>
     <img alt="acey" src="https://siasky.net/LADIrJJw-LSGC_dYiPBMwklV65NE-w9rqY-bKWHJiXmH_g" width="100%">
   </a>
-JOIxSQL automatizes table creation and migration on MySQL and MariaDB on top of Knex (https://knexjs.org/), based on Joi (https://joi.dev/api) objects.
 </p>
+
+JOIxSQL automatizes table creation and migration on MySQL and MariaDB on top of **[Knex](https://knexjs.org/)**, based on **[Joi](https://joi.dev/api)** objects.
+
+<br />
+
+<br />
 
 
 Overall functioning:
