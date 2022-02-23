@@ -54,13 +54,13 @@ await MigrationManager.smartMigration()
 
 ### Strings
 
-#### email and other types
+#### strings: email and other types
 
 String types like email() automatically set the column's right data type:
-- email, domain, hostname, ipVersion: 255 chars max.
-- dataUri, uri, uriCustomScheme, uriRelativeOnly: 90,000 chars max.
-- guid: 70 chars max.
-- creditCard, ip, isoDate, isoDuration: 32 chars max.
+- email, domain, hostname, ipVersion: **255 chars** max.
+- dataUri, uri, uriCustomScheme, uriRelativeOnly: **90,000 chars** max.
+- guid: **70 chars** max.
+- creditCard, ip, isoDate, isoDuration: **32 chars** max.
 
 ```ts
 Joi.object({
@@ -70,7 +70,7 @@ Joi.object({
 })
 ```
 
-#### min() / max()
+#### strings: min() / max()
 
 min(), and max() will determine the sql data type. https://www.mysqltutorial.org/mysql-text/
 
@@ -80,7 +80,7 @@ Joi.object({
 })
 ```
 
-#### Nothing
+#### strings: Nothing
 
 If no max() nor string type is set, the SQL type will be by default TEXT (max 65,535 chars)
 
@@ -90,7 +90,7 @@ Joi.object({
 })
 ```
 
-#### Unique (only on strings below 256 chars)
+#### strings: Unique (only on strings below 256 chars)
 
 unique() set a SQL Unique constraint
 
@@ -100,7 +100,7 @@ Joi.object({
 })
 ```
 
-#### Groups
+#### strings: Groups
 
 groups() has NO effect on MySQL/MariaDB. 
 Feature enabled to allow feature developement on top of JOIxSQL, for classifying columns data, to render them only when they are included in a group, to avoid rendering the whole object when no need.
@@ -111,7 +111,7 @@ Joi.object({
 })
 ```
 
-#### Allow (Enum)
+#### strings: Allow (Enum)
 
 allow() set the column as a MySQL/Maria ENUM
 
@@ -121,7 +121,7 @@ Joi.object({
 })
 ```
 
-#### Default 
+#### strings: Default 
 
 default() will do a DEFAULT constraint on MySQL/Maria
 
@@ -131,7 +131,7 @@ Joi.object({
 })
 ```
 
-#### Foreign Key 
+#### strings: Foreign Key 
 
 foreignKey() indicates that **'title'** is the FOREIGN KEY of the column **'id'** in the table **'groups'**
 
@@ -141,9 +141,7 @@ Joi.object({
 })
 ```
 
-#### Cascades (only with foreign key)
-
-SQL Cascades.
+#### strings: Cascades (only with foreign key)
 
 ```ts
 Joi.object({
@@ -151,7 +149,7 @@ Joi.object({
 })
 ```
 
-#### Populate
+#### strings: Populate
 
 populate() indicates the link between two columns from different tables without sql consequences.
 <br />
@@ -163,12 +161,100 @@ Joi.object({
 })
 ```
 
-#### Required
+#### strings: Required
 
 required() set the column as NOT NULL SQL constraint
 
 ```ts
 Joi.object({
     title: Joi.string().allow("Lord", "King", "Prince").required()
+})
+```
+
+<br />
+<br />
+
+### Numbers
+
+#### numbers: Primary key
+```ts
+Joi.object({
+    id: Joi.number().primaryKey()
+})
+```
+
+#### numbers: Auto increment
+
+Increment each new row on MYSQL / MariaDB
+
+```ts
+Joi.object({
+    id: Joi.number().primaryKey().autoIncrement()
+})
+```
+
+#### numbers: Float
+
+Float number type: https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html
+
+```ts
+Joi.object({
+    //max 999,999,999.99; min -999,999,999.99
+    amount: Joi.number().float(11, 2)
+    //max 99.999; min -99.999
+    amount_2: Joi.number().float(5, 3)
+})
+```
+
+#### numbers: Double
+
+Double number type: min -1.7976931348623157E+308, max 1.7976931348623157E+308
+
+```ts
+Joi.object({
+    stars_count: Joi.number().double()
+})
+```
+
+#### numbers: Allow (Enum)
+
+allow() set the column as a MySQL/Maria ENUM
+
+```ts
+Joi.object({
+    class: Joi.number().allow(1, 2, 3)
+})
+```
+
+#### numbers: port
+
+Numbers types like portSet() automatically set the column's right data type:
+- portSet: int unsigned | min: 0, max: 4,294,967,295.
+
+```ts
+Joi.object({
+    port: Joi.number().port(),
+})
+```
+
+#### numbers: min() / max()
+
+min(), and max() will determine the sql data type (https://github.com/elzeardjs/joixsql/blob/master/src/table-engine/mysql/types.ts)
+
+```ts
+Joi.object({
+    //Here: Unsigned int
+    player_id: Joi.number().min(0).max(2_000_000_000)
+})
+```
+
+#### numbers: positive
+
+positive() is equivalent to min(>=0). It will set the number as unsigned (if integers)
+
+```ts
+Joi.object({
+    //Here: Unsigned int
+    player_id: Joi.number().positive().max(2_000_000_000)
 })
 ```
