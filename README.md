@@ -4,7 +4,7 @@ Joixsql automatizes table creation and migration on MySQL and MariaDB based on *
 
 Simple Example:
 ```ts
-import { Joi, TableEngine, config, Ecosystem, MigrationManager } from 'joixsql'
+import { Joi, TableEngine, config, Ecosystem, MigrationManager, config } from 'joixsql'
 
 /* Create a user schema */
 const User = Joi.object({
@@ -24,6 +24,18 @@ const users = ecosystem.add(userTable)
 
 /* Do every available tests to check the model is receivable by MySQL/MariaDB */
 ecosystem.verify(userModel).all()
+
+//We set the package configuration before running the table builder and the migration detector.
+config.set({
+    historyDir: './history'
+    mysqlConfig: {
+        host: 'localhost',
+        user: 'fanta',
+        password: 'passwd',
+        database: 'db_name'
+    },
+    ecosystem: ecosystem 
+})
 
 /* Will build all the tables present in the ecosystem that have not been created yet. */
 await TableEngine.buildAllFromEcosystem()
