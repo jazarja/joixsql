@@ -50,9 +50,20 @@ await MigrationManager.smartMigration()
 <br />
 
 
-## Object options:
+# Extensions :
 <br />
-### Numbers
+
+## Strings
+
+### min() / max()
+
+min(), and max() will determine the sql data type. https://www.mysqltutorial.org/mysql-text/
+```ts
+Joi.object({
+    username: Joi.string().min(3).max(20)
+})
+```
+
 
 ```ts
 Joi.object({
