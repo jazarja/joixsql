@@ -160,7 +160,7 @@ export const JoiMySQL = (Joi: Root): JoiSQLRoot => {
                     return this.$_setFlag('float', {precision, scale});
                 }
             },
-            /* Double number type: https://dev.mysql.com/doc/refman/8.0/en/floating-point-types.html */
+            /* Double number type: min -1.7976931348623157E+308, max 1.7976931348623157E+308 */
             double: {
                 method() {
                     return this.$_setFlag('double', true);

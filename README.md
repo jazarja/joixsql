@@ -52,6 +52,83 @@ await MigrationManager.smartMigration()
 
 ## Extensions :
 
+### General:
+
+#### general: unique
+
+unique() set a SQL Unique constraint
+
+```ts
+Joi.object({
+    email: Joi.string().email().unique()
+})
+```
+
+#### general: groups
+
+groups() has NO effect on MySQL/MariaDB. 
+Feature enabled to allow feature developement on top of JOIxSQL, for classifying columns data, to render them only when they are included in a group, to avoid rendering the whole object when no need.
+
+```ts
+Joi.object({
+    email: Joi.string().email().groups(['full', 'preview'])
+})
+```
+
+#### general: Default 
+
+default() will do a DEFAULT constraint on MySQL/Maria
+
+```ts
+Joi.object({
+    count: Joi.number().max(150).min(0).default(0)
+})
+```
+
+#### general: Foreign Key 
+
+foreignKey() indicates that **'title'** is the FOREIGN KEY of the column **'id'** in the table **'categories'**
+
+```ts
+Joi.object({
+    title: Joi.string().foreignKey('categories', 'id')
+})
+```
+
+
+#### general: Cascades (only with foreign key)
+
+```ts
+Joi.object({
+    title: Joi.string().foreignKey('categories', 'id').deleteCascade().updateCascade()
+})
+```
+
+#### general: Populate
+
+populate() indicates the link between two columns from different tables without sql consequences.
+<br />
+This extension has been added to enable feature developement on top of JOIxSQL for formating rendered data for example.
+
+```ts
+Joi.object({
+    title: Joi.string().populate('categories', 'id')
+})
+```
+
+#### general: Required
+
+required() set the column as NOT NULL SQL constraint
+
+```ts
+Joi.object({
+    title: Joi.string().allow("Lord", "King", "Prince").required()
+})
+```
+
+<br />
+<br />
+
 ### Strings
 
 #### strings: email and other types
@@ -90,27 +167,6 @@ Joi.object({
 })
 ```
 
-#### strings: Unique (only on strings below 256 chars)
-
-unique() set a SQL Unique constraint
-
-```ts
-Joi.object({
-    email: Joi.string().email().unique()
-})
-```
-
-#### strings: Groups
-
-groups() has NO effect on MySQL/MariaDB. 
-Feature enabled to allow feature developement on top of JOIxSQL, for classifying columns data, to render them only when they are included in a group, to avoid rendering the whole object when no need.
-
-```ts
-Joi.object({
-    username: Joi.string().email().groups(['full', 'preview'])
-})
-```
-
 #### strings: Allow (Enum)
 
 allow() set the column as a MySQL/Maria ENUM
@@ -121,55 +177,6 @@ Joi.object({
 })
 ```
 
-#### strings: Default 
-
-default() will do a DEFAULT constraint on MySQL/Maria
-
-```ts
-Joi.object({
-    title: Joi.string().allow("Lord", "King", "Prince").default("Prince")
-})
-```
-
-#### strings: Foreign Key 
-
-foreignKey() indicates that **'title'** is the FOREIGN KEY of the column **'id'** in the table **'groups'**
-
-```ts
-Joi.object({
-    title: Joi.string().foreignKey('groups', 'id')
-})
-```
-
-#### strings: Cascades (only with foreign key)
-
-```ts
-Joi.object({
-    title: Joi.string().foreignKey('groups', 'id').deleteCascade().updateCascade()
-})
-```
-
-#### strings: Populate
-
-populate() indicates the link between two columns from different tables without sql consequences.
-<br />
-This extension has been added to enable feature developement on top of JOIxSQL for formating rendered data for example.
-
-```ts
-Joi.object({
-    title: Joi.string().populate('groups', 'id')
-})
-```
-
-#### strings: Required
-
-required() set the column as NOT NULL SQL constraint
-
-```ts
-Joi.object({
-    title: Joi.string().allow("Lord", "King", "Prince").required()
-})
-```
 
 <br />
 <br />
