@@ -127,6 +127,7 @@ export default class Ecosystem {
     //Returns different tests on a Schema to check that they are correctly set
     verify = (v: IModel): IVerify => {
 
+        //Do every available tests to check the model is receivable by MySQL/MariaDB
         const all = () => {
             foreignKeyExistences()
             populateExistences()
