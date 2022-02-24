@@ -13,15 +13,15 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/elzeard/joixsql.git"
+    "url": "git+https://github.com/elzeardjs/joixsql.git"
   },
   "bugs": {
-    "url": "https://github.com/elzeard/joixsql/issues"
+    "url": "https://github.com/elzeardjs/joixsql/issues"
   },
   "files": [
     "dist/**"
   ],
-  "homepage": "https://github.com/elzeard/joixsql#readme",
+  "homepage": "https://github.com/elzeardjs/joixsql#readme",
   "dependencies": {
     "@types/joi": "^17.2.3",
     "fs": "^0.0.1-security",
