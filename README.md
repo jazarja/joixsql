@@ -4,14 +4,20 @@
   </a>
 </p>
 
-JOIxSQL automatizes table creation and migration on MySQL and MariaDB on top of **[Knex](https://knexjs.org/)**, based on **[Joi](https://joi.dev/api)** objects.
+<br />
+
+### What if you could automatize your MySQL/MariaDB table creation and migration based on your **[Joi](https://joi.dev/api)** schemas ?
+
+*Well, now you can.*
 
 <br />
 
 <br />
 
+---------
 
-Overall functioning:
+
+### Overall functioning:
 ```ts
 import { Joi, TableEngine, config, Ecosystem, MigrationManager } from 'joixsql'
 
