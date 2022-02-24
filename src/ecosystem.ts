@@ -32,6 +32,10 @@ export interface IVerify {
     crossedPopulatedValues(): void
 }
 
+/* 
+    Ecosystem is a mangager allowing to manage all the Joi schema created.
+    It allows, for example, to do table creation or table migration, thanks to change recording.
+*/
 export default class Ecosystem {
 
     private _list: IModel[] = []
