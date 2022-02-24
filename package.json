@@ -13,15 +13,15 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arysociety/joixsql.git"
+    "url": "git+https://github.com/elzeard/joixsql.git"
   },
   "bugs": {
-    "url": "https://github.com/arysociety/joixsql/issues"
+    "url": "https://github.com/elzeard/joixsql/issues"
   },
   "files": [
     "dist/**"
   ],
-  "homepage": "https://github.com/arysociety/joixsql#readme",
+  "homepage": "https://github.com/elzeard/joixsql#readme",
   "dependencies": {
     "@types/joi": "^17.2.3",
     "fs": "^0.0.1-security",
