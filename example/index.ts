@@ -22,9 +22,9 @@ config.set({
     historyDir: './history',
     mysqlConfig: {
         host: 'localhost',
-        user: 'fanta',
-        password: 'aqw12345',
-        database: 'inspirationeum'
+        user: 'user',
+        password: 'password',
+        database: 'database'
     },
     ecosystem: ecosystem 
 })
