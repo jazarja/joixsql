@@ -14,52 +14,63 @@
 
 <br />
 
----------
+<br />
 
 
-### Overall functioning:
+## Get Started:
+
+<p align="right" font-style="italic">
+  <a target="_blank" href="https://github.com/elzeardjs/joixsql/tree/master/example">Run the example</a>
+</p>
+
+
 ```ts
 import { Joi, TableEngine, config, Ecosystem, MigrationManager } from 'joixsql'
 
-/* Create a user schema */
-const User = Joi.object({
+/* Create a todo schema */
+const Todo = Joi.object({
     id: Joi.number().autoIncrement().primaryKey(),
-    username: Joi.string().min(3).max(20).lowercase().required().unique(),
-    created_at: Joi.date().required().default('now'),
-    access_token: Joi.string().uuid().required().unique(),
+    content: Joi.string().min(1).max(400).default(''),
+    created_at: Joi.date().default(() => new Date()),
 })
 
 /* Connect the schema with a table name */
-const userTable = {schema: User, tableName: 'users'}
+const todoTable = {schema: Todo, tableName: 'todos'}
 
 /* Instance a new ecosystem of Tables */
 const ecosystem = new Ecosystem()
-ecosystem.add(userTable)
+ecosystem.add(todoTable)
 
 /* Do every available tests to check the model is receivable by MySQL/MariaDB */
-ecosystem.verify(userModel).all()
+ecosystem.verify(todoTable).all()
 
 //We set the package configuration before running the table builder and the migration detector.
 config.set({
-    historyDir: './history'
+    historyDir: './history',
     mysqlConfig: {
         host: 'localhost',
-        user: 'fanta',
-        password: 'passwd',
-        database: 'db_name'
+        user: 'user',
+        password: 'password',
+        database: 'database'
     },
     ecosystem: ecosystem 
 })
 
-/* Will build all the tables present in the ecosystem that have not been created yet. */
-await TableEngine.buildAllFromEcosystem()
+const main = async () => {
 
-/*
-Will migrate all the tables present in the ecosystem for the already existing tables
-that differ from their previous state recorded in the history
-*/
-await MigrationManager.smartMigration()
+    /* Will build all the tables present in the ecosystem that have not been created yet. */
+    await TableEngine.buildAllFromEcosystem()
+
+    /*
+    Will migrate all the tables present in the ecosystem for the already existing tables
+    that differ from their previous state recorded in the history
+    */
+    await MigrationManager.smartMigration()
+}
+
+main()
 ```
+
 <br />
 <br />
 
