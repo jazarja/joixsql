@@ -26,6 +26,7 @@
     "@types/joi": "^17.2.3",
     "fs": "^0.0.1-security",
     "joi": "^17.6.0",
+    "joixsql": "1.1.6",
     "js-beautify": "^1.11.0",
     "knex": "0.21.17",
     "lodash": "^4.17.21",
