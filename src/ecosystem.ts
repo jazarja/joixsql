@@ -89,7 +89,6 @@ export default class Ecosystem {
                 if (!no_populate){
                     const modelRef = this.getModel(table_reference)
                     if (modelRef){
-                        this.schema(modelRef).getPrimaryKey() === key_reference && 
                         !_.find(populate, {key}) && populate.push({
                             key, 
                             table_reference, 
