@@ -14,7 +14,7 @@ const HARD_MIGRATION_ENABLED = true
 
 
 const knexConfig = {
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
         "host": "localhost",
         "user": "root",
