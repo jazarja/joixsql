@@ -44,15 +44,33 @@ ecosystem.add(todoTable)
 /* Do every available tests to check the model is receivable by MySQL/MariaDB */
 ecosystem.verify(todoTable).all()
 
+/* Initialize knex instance */
+const knexConfig = {
+    client: 'mysql',
+    connection: {
+        "host": "localhost",
+        "user": "root",
+        "password": "testroot",
+        "database": "test",
+        // "ssl": {
+        //   "rejectUnauthorized": "true",
+        //   "secureProtocol": "TLSv1_2_method"
+        // }
+    }
+}
+
+const knexInstance = knex(knexConfig);
+
+
+config.set({
+    knex: knexInstance,
+    historyDir: './history'
+})
+
 //We set the package configuration before running the table builder and the migration detector.
 config.set({
     historyDir: './history',
-    mysqlConfig: {
-        host: 'localhost',
-        user: 'user',
-        password: 'password',
-        database: 'database'
-    },
+    knex: knexInstance,
     ecosystem: ecosystem 
 })
 
