@@ -7,7 +7,7 @@
     "start": "tsc && node ./dist/index.js"
   },
   "dependencies": {
-    "joixsql": "^1.1.5"
+    "joixsql": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",

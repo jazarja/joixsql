@@ -26,6 +26,7 @@
 
 ```ts
 import { Joi, TableEngine, config, Ecosystem, MigrationManager } from 'joixsql'
+import knex from 'knex'
 
 /* Create a todo schema */
 const Todo = Joi.object({
@@ -46,7 +47,7 @@ ecosystem.verify(todoTable).all()
 
 /* Initialize knex instance */
 const knexConfig = {
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
         "host": "localhost",
         "user": "root",

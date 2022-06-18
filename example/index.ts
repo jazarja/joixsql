@@ -1,4 +1,5 @@
 import { Joi, TableEngine, config, Ecosystem, MigrationManager } from 'joixsql'
+import knex from 'knex';
 
 /* Create a todo schema */
 const Todo = Joi.object({
@@ -18,14 +19,26 @@ ecosystem.add(todoTable)
 ecosystem.verify(todoTable).all()
 
 //We set the package configuration before running the table builder and the migration detector.
+
+const knexConfig = {
+    client: 'mysql2',
+    connection: {
+        "host": "localhost",
+        "user": "root",
+        "password": "testroot",
+        "database": "test",
+        // "ssl": {
+        //   "rejectUnauthorized": "true",
+        //   "secureProtocol": "TLSv1_2_method"
+        // }
+    }
+}
+
+const knexInstance = knex(knexConfig);
+
 config.set({
     historyDir: './history',
-    mysqlConfig: {
-        host: 'localhost',
-        user: 'user',
-        password: 'password',
-        database: 'database'
-    },
+    knex: knexInstance,
     ecosystem: ecosystem 
 })
 
