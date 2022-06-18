@@ -29,7 +29,8 @@
     "js-beautify": "^1.11.0",
     "knex": "0.21.17",
     "lodash": "^4.17.21",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "mysql2": "^2.3.3"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

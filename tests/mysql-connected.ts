@@ -4,7 +4,7 @@ import 'mocha';
 
 const main = () => {
 
-    const connection = config.mysqlConnexion()
+    const connection = config.connection()
 
     const removeTable = async (table: string) => {
         await connection.raw('SET foreign_key_checks = 0;')

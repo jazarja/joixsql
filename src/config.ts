@@ -1,13 +1,13 @@
 import fs from 'fs'
 import _ from 'lodash'
-import knex, {MySqlConnectionConfig} from 'knex'
+import knex from 'knex'
 import Ecosystem from './ecosystem'
 
-let connexion: any = null
+let knexInstance: any = null
 
 export interface IConfig {
-    //MySQL configuration object
-    mysqlConfig?: MySqlConnectionConfig
+    //Knex object
+    knex?: knex<any, unknown[]>
     //Directory path where the migrations and schemas history are stored
     historyDir?: string
     //Critical code given by JoixSQL used in critical migrations like column removal.
@@ -25,7 +25,7 @@ export interface IConfig {
 export default class Config {
 
     private _config: IConfig = {
-        mysqlConfig: {},
+        knex: undefined,
         historyDir: '',
         criticalCode: null,
         enableLog: true,
@@ -34,18 +34,10 @@ export default class Config {
         ecosystem: null
     }
 
-    //Build the connexion with knex to the MySQL database
-    private _makeConnexion = (config: MySqlConnectionConfig) => {
-        if (!config.charset){
-            config.charset = 'utf8mb4'
-        }
-        connexion = knex({ client: 'mysql', connection: config })
-    }
-
     //Returns the config
     config = () => this._config
     //Returns the MySQL config
-    mysqlConfig = (): MySqlConnectionConfig | null => this.config().mysqlConfig || null
+    mysqlConfig = ():  knex<any, unknown[]> | null => this.config().knex || null
     //Returns the critical code
     criticalCode = () => this.config().criticalCode
     //Returns the migrations history directory
@@ -80,10 +72,10 @@ export default class Config {
     }
 
     //Returs the MySQL connexion through Knex
-    mysqlConnexion = (): knex<any, unknown[]> => {
-        if (connexion === null)
-            throw new Error("You need to set a MySQL configuration first.")
-        return connexion  as knex<any, unknown[]>
+    connection = (): knex<any, unknown[]> => {
+        if (knexInstance === null)
+            throw new Error("You need to set a knex instance first.")
+        return knexInstance  as knex<any, unknown[]>
     }
 
     setEcosystem = (ecosystem: Ecosystem) => this.set({ ecosystem })
@@ -103,8 +95,8 @@ export default class Config {
     setCriticalCode = (code: string) => this.set({criticalCode: code})
     
     set = (config: IConfig) => {
-        if (!_.isEqual(config.mysqlConfig, this.mysqlConfig()) && !!config.mysqlConfig)
-            this._makeConnexion(config.mysqlConfig)
+        if (config.knex)
+            knexInstance = config.knex;
         this._config = Object.assign({}, this.config(), config)
     }
 }

@@ -113,7 +113,7 @@ const buildTableString = (schema: Schema, tableName: string): string => {
     
     const columnSTR = {string: `return knex.schema.createTable('${tableName}', function(t) {\n`}
 
-    config.mysqlConnexion().schema.createTable(tableName, (table: knex.TableBuilder) => {
+    config.connection().schema.createTable(tableName, (table: knex.TableBuilder) => {
         for (const key in described){
             const elem = parseSupportedTypes(schema, new Element(described[key], key)).errorScanner()
 
@@ -139,7 +139,7 @@ const buildTable = (schema: Schema, tableName: string): SchemaBuilder => {
     detectAndTriggerSchemaErrors(schema, tableName) 
     const described = schema.describe().keys
     
-    return config.mysqlConnexion().schema.createTable(tableName, (table: knex.CreateTableBuilder) => {
+    return config.connection().schema.createTable(tableName, (table: knex.CreateTableBuilder) => {
         table.charset('utf8mb4')
         table.collate('utf8mb4_unicode_ci')
         
@@ -189,7 +189,7 @@ export const buildAllFromEcosystem = async () => {
 
     const buildAll = async () => {
         try {
-            const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+            const res = await config.connection().transaction(async (trx: knex.Transaction) => {
                 const queries = sortTableToCreate().map((tName: string) => {
                     //Check if the table already exists
                     const isCreated = MigrationManager.schema().lastFilename(tName) != null 
@@ -238,13 +238,13 @@ const dropAllFromEcosystem = async () => {
     const deleteAll = async () => {
         const deleted: IModel[] = []
         try {
-            await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=0;`)
-            const res = await config.mysqlConnexion().transaction(async (trx: knex.Transaction) => {
+            await config.connection().raw(`SET FOREIGN_KEY_CHECKS=0;`)
+            const res = await config.connection().transaction(async (trx: knex.Transaction) => {
                 const queries = sortTableToCreate().reverse().map((tName: string) => {
                     const isCreated = MigrationManager.schema().lastFilename(tName) != null 
                     if (isCreated){
                         deleted.push(ecosystem.getModel(tName) as IModel)
-                        return config.mysqlConnexion().schema.dropTableIfExists(tName)
+                        return config.connection().schema.dropTableIfExists(tName)
                     }
                 })
                 return Promise.all(queries).then(trx.commit).catch(trx.rollback)
@@ -255,7 +255,7 @@ const dropAllFromEcosystem = async () => {
         } catch (e){
             throw new Error(e)
         } finally {
-            await config.mysqlConnexion().raw(`SET FOREIGN_KEY_CHECKS=1;`)
+            await config.connection().raw(`SET FOREIGN_KEY_CHECKS=1;`)
         }
     }
 

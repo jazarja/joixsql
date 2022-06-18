@@ -16,7 +16,7 @@ export default (m: Manager) => {
     const create = async (name: string) => {
         if (!doesExist(name))
             createPath(name)
-        return await config.mysqlConnexion().migrate.make(name, { directory: path(name) })
+        return await config.connection().migrate.make(name, { directory: path(name) })
     }
     
     const get = async (mig: IModel) => {
@@ -37,7 +37,7 @@ export default (m: Manager) => {
 
     //Migrate every last history migration files
     const migrateAll = async () => {
-        return await config.mysqlConnexion().migrate.latest({
+        return await config.connection().migrate.latest({
             directory: getListMigrationPaths(),
         })
     }

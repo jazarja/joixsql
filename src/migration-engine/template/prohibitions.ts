@@ -5,13 +5,13 @@ import sqlInfo from './info'
 import errors from './errors'
 
 const countTotalRows = async (tableName: string) => {
-    const count = await config.mysqlConnexion().table(tableName).count()
+    const count = await config.connection().table(tableName).count()
     const nRows = count[0]['count(*)']
     return nRows as number
 }
 
 const fetchBy = async (tableName: string, where: any) => {
-    const result = await config.mysqlConnexion().table(tableName).where(where).first()
+    const result = await config.connection().table(tableName).where(where).first()
     if (_.isObjectLike(result)){
         return result
     }
@@ -22,27 +22,27 @@ const fetchBy = async (tableName: string, where: any) => {
 export const handleUpdateProhibitions = async (updated: any, tableName: string) => {
 
     const countWhereNull = async (column: string)=> {
-        const c: any = await config.mysqlConnexion().table(tableName).whereNull(column).count('* as count')
+        const c: any = await config.connection().table(tableName).whereNull(column).count('* as count')
         return c[0].count as number
     }
 
     const countDuplicateValues = async (column: string) => {
-        const ret = await config.mysqlConnexion().raw(`SELECT COUNT(*) FROM (SELECT ${column}, COUNT(${column}) FROM ${tableName} GROUP BY ${column} HAVING COUNT(${column}) > 1) as X`)
+        const ret = await config.connection().raw(`SELECT COUNT(*) FROM (SELECT ${column}, COUNT(${column}) FROM ${tableName} GROUP BY ${column} HAVING COUNT(${column}) > 1) as X`)
         return ret[0][0]['COUNT(*)'] as number
     }
 
     const countGreaterThanLength = async (column: string, maxLength: number) => {
-        const ret = await config.mysqlConnexion().raw(`SELECT COUNT(*) FROM (SELECT ${column} FROM ${tableName} WHERE length(${column}) > ${maxLength}) as X`)
+        const ret = await config.connection().raw(`SELECT COUNT(*) FROM (SELECT ${column} FROM ${tableName} WHERE length(${column}) > ${maxLength}) as X`)
         return ret[0][0]['COUNT(*)'] as number
     }
 
     const countLowerThan = async (column: string, min: number) => {
-        const c: any = await config.mysqlConnexion().table(tableName).where(column, '<', min).count('* as count')
+        const c: any = await config.connection().table(tableName).where(column, '<', min).count('* as count')
         return c[0].count as number
     }
 
     const countGreaterThan = async (column: string, max: number) => {
-        const c: any = await config.mysqlConnexion().table(tableName).where(column, '>', max).count('* as count')
+        const c: any = await config.connection().table(tableName).where(column, '>', max).count('* as count')
         return c[0].count as number
     }
 

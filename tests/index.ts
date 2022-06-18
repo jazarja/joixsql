@@ -1,5 +1,6 @@
 import { config } from '../index'
 import 'mocha';
+import knex from 'knex';
 
 const TABLE_ENGINE_ERRORS_ENABLED = true
 const GENERATE_DEFAULT_VALUE_ERRORS_ENABLED = true
@@ -11,13 +12,26 @@ const ECOSYSTEM_ENABLED = true
 const BASIC_AUTO_MIGRATION_ENABLED = true
 const HARD_MIGRATION_ENABLED = true
 
+
+const knexConfig = {
+    client: 'mysql',
+    connection: {
+    "host": "localhost",
+    "user": "test",
+    "password": "test",
+    "database": "test",
+    "ssl": {
+      "rejectUnauthorized": "true",
+      "secureProtocol": "TLSv1_2_method"
+    }
+}
+}
+
+const knexInstance = knex(knexConfig);
+
+
 config.set({
-    mysqlConfig: {
-        host: 'localhost',
-        user: 'fanta',
-        password: 'aqw12345',
-        database: 'yeca'
-    },
+    knex: knexInstance,
     historyDir: './history'
 })
 
