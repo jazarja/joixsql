@@ -5,10 +5,13 @@
 image:
   file: .gitpod.Dockerfile
 tasks:
-  - name: Install Yarn
-    init: | 
-      mysql -e "CREATE DATABASE test;"
-      mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'testroot';"
-      npm install && npm run build
+  - name: Create test DATABASE
+    init: mysql -e "CREATE DATABASE test;"
+
+  - name: Change root user password
+    init: mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'testroot';"
+
+  - name: Install libraries
+    init: npm install && npm run build
 
 
