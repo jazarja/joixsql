@@ -5,11 +5,11 @@
 image:
   file: .gitpod.Dockerfile
 tasks:
-  - name: Create test DATABASE
-    init: mysql -e "CREATE DATABASE test;"
-
-  - name: Change root user password
-    init: mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'testroot';"
+  - name: Init MySQL
+    init: |
+      while ! mysqladmin ping -h localhost --silent; do     sleep 1; done
+      mysql -e "CREATE DATABASE test;"
+      mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'testroot';"
 
   - name: Install libraries
     init: npm install && npm run build
