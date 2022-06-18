@@ -37,7 +37,7 @@ export default class Config {
     //Returns the config
     config = () => this._config
     //Returns the MySQL config
-    mysqlConfig = ():  knex<any, unknown[]> | null => this.config().knex || null
+    knex = ():  knex<any, unknown[]> | null => this.config().knex || null
     //Returns the critical code
     criticalCode = () => this.config().criticalCode
     //Returns the migrations history directory
